@@ -54,4 +54,14 @@ filt_blutiadults <- blutiadults %>%
 bluti1 <- filt_blutiadults %>%
   right_join(blutiphen, by = c("year", "site", "box")) # 2089 cases for which there is either info on both blutiadults database and blutiphen database or only on blutiphen database
 
-bluti1 %>% arrange(year, site, box)  # Let's rearrange the dataset again for better clarity when looking at it
+##bluti2 <- blutiadults %>%
+##  full_join(blutiphen, by = c("year", "site", "box"))
+##bluti3 <- blutiphen %>%
+##  full_join(blutiadults, by = c("year", "site", "box"))
+##bluti4 <- blutiphen %>%
+##  right_join(blutiadults, by = c("year", "site", "box"))
+##bluti5 <- blutiphen %>%
+## left_join(blutiadults, by = c("year", "site", "box"))
+# Above there are some other options that I have rejected either because they don't keep the information that I'm interested in.
+
+bluti1 <- blutiphen %>% arrange(year, site, box)   # Let's rearrange the dataset again for better clarity when reading it

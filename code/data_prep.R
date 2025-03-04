@@ -64,4 +64,13 @@ bluti1 <- filt_blutiadults %>%
 ## left_join(blutiadults, by = c("year", "site", "box"))
 # Above there are some other options that I have rejected either because they don't keep the information that I'm interested in.
 
-bluti1 <- blutiphen %>% arrange(year, site, box)   # Let's rearrange the dataset again for better clarity when reading it
+bluti1 <- bluti1 %>% arrange(year, site, box)   # Let's rearrange the dataset again for better clarity when reading it
+
+### Creating a new column that specifies age (in years old) of the bird at the recorded breeding attempt
+
+nr_birds <- bluti1 %>%
+  count(ring) %>%
+  filter(n > 1)  # I think this would be useful to identify how many bird there actually are and how many times they are repeated in the dataset (how many years their breeding attempts have been recorded)
+# According to that bit of code, we have 334 female blue tits whose breeding attempt(s) have been recorded, and we have 395 breeding attempts recording for which we don't have the information of the parents.
+
+mean(nr_birds$n)  # on average, each female has almost four breeding years (I think?)

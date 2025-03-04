@@ -22,3 +22,14 @@ blutiphen <- blutiphen %>% select(year, site, box, fed, number.hatched, suc)  # 
 # Selecting variables that will be useful for the project from the adult data
 blutiadults <- adultx %>% select(ring, year, site, box, age, sex)
 
+# Rearranging datasets in ascending order of years
+blutiphen <- blutiphen %>% arrange(year, site, box)  
+blutiadults <- blutiadults %>% arrange(year, site, box, sex)  
+
+# Selecting only female data in the adults subdatabase
+blutiadults_F <- blutiadults %>% filter(sex == "F")
+
+# Creating a new database colliding blutiadults_F and blutiphen using columns "year", "site" and "nestbox"
+
+blutiadults_F %>% group_by(year, site, box) 
+blutiphen %>% group_by(year, site, box)

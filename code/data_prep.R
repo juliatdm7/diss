@@ -129,17 +129,7 @@ hist(bluti2$suc, xlab = "Number of chicks successfully fledged")
 #    }
 #  }
 #}
-years <- c(2014, 2015, 2016, 2017, 2018, 2019, 2010, 2021, 2022, 2023, 2024)
-rings <- nr_birds$ring
-br_attemps <- as.data.frame(matrix(0, ncol=11, nrow=nrow(nr_birds)))
-colnames(br_attemps) <- years
-br_attemps <- br_attemps %>%
-  mutate(
-    ID = rings
-  ) 
-br_attemps <- br_attemps %>% slice_head(n=1150)
-#rownames(br_attemps) <- br_attemps$ID
-br_attemps <- br_attemps %>% relocate(ID, .before = "2014")
+
 
 br_attempts <- bluti3 %>% 
   group_by(year) %>%

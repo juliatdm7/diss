@@ -86,21 +86,18 @@ nr_birds[which(nr_birds$n == max(nr_birds[1:1150, 2])),"ring"]  # ...and it's of
 
 str(bluti1)
 
-bluti1$ring <- as.factor(bluti1$ring)
-bluti1$YEAR <- as.factor(bluti1$year)
-bluti1$site <- as.factor(bluti1$site)
-bluti1$suc <- as.numeric(bluti1$suc)
+#bluti1$YEAR <- as.factor(bluti1$year)
+#bluti1$site <- as.factor(bluti1$site)
+#bluti1$suc <- as.numeric(bluti1$suc)
 
 bluti2 <- bluti1[-which(bluti1$suc < 0),]
-
+bluti2$suc <- as.numeric(bluti2$suc)
 hist(bluti2$suc, xlab = "Number of chicks successfully fledged")
 
 ### Creating a new column that specifies age (in years old) of the bird at the recorded breeding attempt ###
 
 
-#bluti3 <- bluti2 %>%
-#  filter(!is.na(ring), !is.na(age))  # first, I need to remove all rows containing NAs in "ring" or "age" columns because otherwise the loop will not work
-#  
+ 
 #years <- matrix(0, nrow=1, ncol=nrow(bluti3))  # here I create a matrix that has a single row and as many columns as rows has bluti3 (as cases are, after filtering NAs)
 #y <- 0  # here I create a variable that I will use within the loop 
 #for (i in 1:nrow(bluti3)) {
@@ -130,10 +127,35 @@ hist(bluti2$suc, xlab = "Number of chicks successfully fledged")
 #  }
 #}
 
+# Creating a new data frame (tibble) that summarises breeding attempts per identified individual per year
 
+bluti3 <- bluti2 %>%
+  filter(!is.na(ring), !is.na(age))  # first, I need to remove all rows containing NAs in "ring" or "age" columns because otherwise the loop will not work
 br_attempts <- bluti3 %>% 
   group_by(year) %>%
   count(ring)
 
+# Converting br_attempts into a individual-by-year matrix
 ID_by_year <- br_attempts %>% 
   pivot_wider(names_from=year,values_from=c(n))
+
+x <- bluti3 %>% select(ring, year, age) %>% mutate(y_old = 0)
+case <- as.data.frame(matrix(0, nrow=1, ncol=4))
+colnames(case) <- c("ring", "year", "age", "y_old")
+case[1,"ring"] <- x[1,"ring"]
+years <- matrix(0, nrow=1, ncol=nrow(bluti3))  # here I create a matrix that has a single row and as many columns as rows has bluti3 (as cases are, after filtering NAs)
+y <- 0  # here I create a variable that I will use within the loop
+for (i in 1:nrow(x)) {
+  case[,1:4] <- 0  # reset the variable to 0 after every iteration
+  case[1,] <- x[i,]
+  for (a in 1:i) {
+    case[,1:4] <- 0  # reset the variable to 0 after every iteration
+    case[2,] <- x[a,]
+    if (x[a, "ring"] == x[i, "ring"] &
+        !x[a,"year"] == case[1,"year"]) {
+      y <- y + 1  # if the ring number from the iteration has been before, add the amount of times it has appeared so far
+    }
+    case[1,] <- x[a,]
+  }
+  years[1,i] <- y  # store for each case, how many years we've recorded that bird up until the one in which that recording was made
+}

@@ -5,6 +5,7 @@
 
 # Loading necessary packages
 library(dplyr)  
+library(tidyverse)
 
 # Loading original datasets
 adults <- read.csv("data/Adults.csv")  # loading adult blue tits data
@@ -65,12 +66,84 @@ bluti1 <- filt_blutiadults %>%
 # Above there are some other options that I have rejected either because they don't keep the information that I'm interested in.
 
 bluti1 <- bluti1 %>% arrange(year, site, box)   # Let's rearrange the dataset again for better clarity when reading it
+head(bluti1)
 
-### Creating a new column that specifies age (in years old) of the bird at the recorded breeding attempt
+### Exploring the dataset ###
+
+unique(bluti1$year)  # Data from years 2014-2024
+
+length(unique(bluti1$ring))
 
 nr_birds <- bluti1 %>%
-  count(ring) %>%
-  filter(n > 1)  # I think this would be useful to identify how many bird there actually are and how many times they are repeated in the dataset (how many years their breeding attempts have been recorded)
-# According to that bit of code, we have 334 female blue tits whose breeding attempt(s) have been recorded, and we have 395 breeding attempts recording for which we don't have the information of the parents.
+  count(ring) # I think this would be useful to identify how many birds there actually are and how many times they are repeated in the dataset (how many years their breeding attempts have been recorded)
+# According to that bit of code, we have 1151 female blue tits for which we have recorded at least 1 breeding season...
+nr_birds %>% filter(is.na(ring))# ...and we have 395 breeding attempts recording for which we don't have the information of the parents.
 
-mean(nr_birds$n)  # on average, each female has almost four breeding years (I think?)
+mean(nr_birds$n)  # on average, each female breeds for 2 years approx. (I think?), assuming that we have recorded all lifetime breeding attempts
+
+max(nr_birds[1:1150, 2])  # the maximum number of breeding attempts recorded for the same female is 8...
+nr_birds[which(nr_birds$n == max(nr_birds[1:1150, 2])),"ring"]  # ...and it's of female S921907
+
+str(bluti1)
+
+bluti1$ring <- as.factor(bluti1$ring)
+bluti1$YEAR <- as.factor(bluti1$year)
+bluti1$site <- as.factor(bluti1$site)
+bluti1$suc <- as.numeric(bluti1$suc)
+
+bluti2 <- bluti1[-which(bluti1$suc < 0),]
+
+hist(bluti2$suc, xlab = "Number of chicks successfully fledged")
+
+### Creating a new column that specifies age (in years old) of the bird at the recorded breeding attempt ###
+
+
+#bluti3 <- bluti2 %>%
+#  filter(!is.na(ring), !is.na(age))  # first, I need to remove all rows containing NAs in "ring" or "age" columns because otherwise the loop will not work
+#  
+#years <- matrix(0, nrow=1, ncol=nrow(bluti3))  # here I create a matrix that has a single row and as many columns as rows has bluti3 (as cases are, after filtering NAs)
+#y <- 0  # here I create a variable that I will use within the loop 
+#for (i in 1:nrow(bluti3)) {
+#  y <- 0  # reset the variable to 0 after every iteration
+#  for (a in 1:i) {
+#    if (bluti3[a, "ring"] == bluti3[i, "ring"]) {
+#      y <- y + 1  # if the ring number from the iteration has been before, add the amount of times it has appeared so far
+#    }
+#  }
+#  years[1,i] <- y  # store for each case, how many years we've recorded that bird up until the one in which that recording was made
+#}
+#
+## Now, we can combine this with the informaton we have in the "age" column in bluti3 subdataset to estimate how old was each bird in each case:
+#
+#bluti3$y_old <- 0
+#for (i in 1:nrow(bluti3)) {
+#  if (bluti3[i,"age"] == 5) {
+#    bluti3[i,"y_old"] <- 1
+#  } else if (bluti3[i,"age"] == 6) {
+#    if (years[1,i] == 1) {
+#      bluti3[i, "y_old"] <- 2  # WARNING! Here we're assuming that all female birds that we catch for the first time and classify as "age = 6" are 2 years old, BUT THEY COULD BE OLDER SINCE WE CANNOT DETERMINE THEIR EXACT AGE PAST 2 YEARS THROUGH THEIR PLUMMAGE
+#    } else if (years[1,i] > 1) {
+#      bluti3[i, "y_old"] <- years[1,i]
+#    } else {
+#      bluti3[i, "y_old"] <- NA
+#    }
+#  }
+#}
+years <- c(2014, 2015, 2016, 2017, 2018, 2019, 2010, 2021, 2022, 2023, 2024)
+rings <- nr_birds$ring
+br_attemps <- as.data.frame(matrix(0, ncol=11, nrow=nrow(nr_birds)))
+colnames(br_attemps) <- years
+br_attemps <- br_attemps %>%
+  mutate(
+    ID = rings
+  ) 
+br_attemps <- br_attemps %>% slice_head(n=1150)
+#rownames(br_attemps) <- br_attemps$ID
+br_attemps <- br_attemps %>% relocate(ID, .before = "2014")
+
+br_attempts <- bluti3 %>% 
+  group_by(year) %>%
+  count(ring)
+
+ID_by_year <- br_attempts %>% 
+  pivot_wider(names_from=year,values_from=c(n))

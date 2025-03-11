@@ -83,6 +83,19 @@ bluti4 <- blutiphen %>%
   inner_join(blutiadults, by =c("year", "site", "box"))  # warning: many-to-many relationships due to duplicates in both blutiphen and blutiadults databases. For now, we will just keep duplicate rows, but we might have to delete them (especially the duplicates in blutiadults)
 
 
+### Clutch swap treatment ###
+
+# Between 2017 and 2019, a clutch-swap experiment took place. The results of these experiments may have an influence on suc, and we should account for this.
+# First, we need to find how many and which cases in the bluti4 database were part of this experiment:
+swaps <- as_tibble(read.csv("data/clutchswaps.csv"))
+swaps
+# I will have to change the name of either "origin.nest" or "destination.nest" to "box" so that I can compare
+# Initially, which one I choose to change shouldn't matter as the experiment was an exchange.
+swaps <- swaps %>% rename(box = origin.nest)
+bluti4 %>% 
+    semi_join(swaps, by = c("year", "site", "box"))
+# According to this, 241 cases out of a total of 1694 were involved in the clutch swap experiment that took place between 2017 and 2019.
+# Ideally, we want to add a new variable in  our bluti4 database that accounts for this
 
 ### Exploring the dataset ###
 

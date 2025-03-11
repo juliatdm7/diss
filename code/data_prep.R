@@ -16,7 +16,7 @@ allbirdphen  # visualising first rows of data
 # Selecting variables that will be useful for the project from the phenology data
 # Since we aim to study breeding success trends in blue tit populations across age groups and across sites, we will extract those variables that may be useful to study breeding success: first egg lay date ("fed"), number of hatched eggs ("number.hatched") and fledling success (suc)
 blutiphen <- allbirdphen %>% filter(species == "bluti")  # first, we will select and extract cases that are of blue tits
-blutiphen <- blutiphen %>% select(year, site, box, fed, number.hatched, suc)  # we also select columns that will help us collate both databases into one by identifying individuals (i.e.: year, site and box)
+blutiphen <- blutiphen %>% select(year, site, box, fed, cs, suc)  # we also select columns that will help us collate both databases into one by identifying individuals (i.e.: year, site and box)
 
 # Selecting variables that will be useful for the project from the adult data
 adults <- alladults %>% filter(season != "winter", sex == "F")  # we will remove all data coming from adults captured in the winter (as we may not have their corresponding breeding season data), from which we have 410 observations removed, and keep data from females only.
@@ -83,7 +83,7 @@ bluti4 <- blutiphen %>%
   inner_join(blutiadults, by =c("year", "site", "box"))  # warning: many-to-many relationships due to duplicates in both blutiphen and blutiadults databases. For now, we will just keep duplicate rows, but we might have to delete them (especially the duplicates in blutiadults)
 # There are some cases for which breeding success is -999. I don't exactly know what that means, but I will create a new bluti2 variable in which I don't include those cases
 bluti2 <- bluti4[-which(bluti4$suc < 0),]
-bluti2 <- bluti2 %>% relocate(ring, year, site, box, age, fed, number.hatched, suc)
+bluti2 <- bluti2 %>% relocate(ring, year, site, box, age, fed, cs, suc)
 bluti2 <- bluti2 %>% arrange(year, site, box)
 
 ### Clutch swap treatment ###
@@ -175,6 +175,7 @@ birds_at_only_6 <- bluti2 %>%
   count(ring)   
 # There are 410 females of which we have recordings only when they're age 6 and not before; these could be problematic to include in the model
 
+bluti2 %>% anti_join(birds_at_5, by = "ring")
 
 ### Creating a new column that specifies age (in years old) of the bird at the recorded breeding attempt ###
  

@@ -83,6 +83,8 @@ bluti4 <- blutiphen %>%
   inner_join(blutiadults, by =c("year", "site", "box"))  # warning: many-to-many relationships due to duplicates in both blutiphen and blutiadults databases. For now, we will just keep duplicate rows, but we might have to delete them (especially the duplicates in blutiadults)
 # There are some cases for which breeding success is -999. I don't exactly know what that means, but I will create a new bluti2 variable in which I don't include those cases
 bluti2 <- bluti4[-which(bluti4$suc < 0),]
+bluti2 <- bluti2 %>% relocate(ring, year, site, box, age, fed, number.hatched, suc)
+bluti2 <- bluti2 %>% arrange(year, site, box)
 
 ### Clutch swap treatment ###
 
@@ -122,7 +124,7 @@ nr_birds2 %>% summarise(n = mean(n))  # On average, we have recorded 1.47 breedi
 # Most females only breed one year (or we only have one recording on average of each female; maybe they've had more but we haven't noticed)
 
 max(nr_birds[, 2])  # the maximum number of breeding attempts recorded for the same female is 8...
-nr_birds[which(nr_birds$n == max(nr_birds[, 2])),"ring"]  # ...and it's of female S921907
+nr_birds2[which(nr_birds2$n == max(nr_birds2[, 2])),"ring"]  # ...and it's of female S921907
 
 attempt1 <- nr_birds2 %>% filter(n == 1)  # 805 females for which we have only 1 breeding attempt recorded
 attempt2 <- nr_birds2 %>% filter(n == 2)  # 197 females for which we have only 1 breeding attempt recorded
@@ -152,6 +154,27 @@ age6 <- bluti2 %>%
   group_by(ring) %>%
   count(age) %>%
   filter(age == 6)
+
+### Filtering the number of females at age 6 that were also recorded at age 5 (and therefore, we definitely know their age) ###
+# The following code is modified from code provided by ChatGPT
+# Find individuals recorded at age 5
+birds_at_5 <- bluti2 %>%
+  filter(age == 5) %>%
+  select(ring) %>%
+  distinct()
+
+# Find individuals recorded at age 6 who were also recorded at age 5
+birds_at_6_with_5 <- bluti2 %>%
+  filter(age == 6) %>%
+  semi_join(birds_at_5, by = "ring") %>%
+  count(ring) 
+
+birds_at_only_6 <- bluti2 %>%
+  filter(age == 6) %>%
+  anti_join(birds_at_5, by = "ring") %>%
+  count(ring)   
+# There are 410 females of which we have recordings only when they're age 6 and not before; these could be problematic to include in the model
+
 
 ### Creating a new column that specifies age (in years old) of the bird at the recorded breeding attempt ###
  

@@ -81,7 +81,8 @@ no_adult_data <- blutiphen %>%
 # For now, I will only include in the database the shared cases between blutiphen and blutiadults because lack of data of either of them is problematic
 bluti4 <- blutiphen %>%
   inner_join(blutiadults, by =c("year", "site", "box"))  # warning: many-to-many relationships due to duplicates in both blutiphen and blutiadults databases. For now, we will just keep duplicate rows, but we might have to delete them (especially the duplicates in blutiadults)
-
+# There are some cases for which breeding success is -999. I don't exactly know what that means, but I will create a new bluti2 variable in which I don't include those cases
+bluti2 <- bluti4[-which(bluti4$suc < 0),]
 
 ### Clutch swap treatment ###
 
@@ -92,43 +93,67 @@ swaps
 # I will have to change the name of either "origin.nest" or "destination.nest" to "box" so that I can compare
 # Initially, which one I choose to change shouldn't matter as the experiment was an exchange.
 swaps <- swaps %>% rename(box = origin.nest)
-bluti4 %>% 
+clutchswaps4 <- bluti4 %>% 
     semi_join(swaps, by = c("year", "site", "box"))
-# According to this, 241 cases out of a total of 1694 were involved in the clutch swap experiment that took place between 2017 and 2019.
+clutchswaps2 <- bluti2 %>% 
+  semi_join(swaps, by = c("year", "site", "box"))
+
+# According to this, 241 cases (or 240, when removing cases were suc < 0) out of a total of 1694 were involved in the clutch swap experiment that took place between 2017 and 2019.
 # Ideally, we want to add a new variable in  our bluti4 database that accounts for this
+# For now we will simply store all this cases in a different variable to bear it in mind
+clutchswaps2 %>% 
+  count(year) %>%
+  filter(n > 1)  # Number of cases involved in clutch swipe experiment per year
+
+
 
 ### Exploring the dataset ###
 
-unique(bluti1$year)  # Data from years 2014-2024
-bluti4 %>%
+unique(bluti2$year)  # Data from years 2014-2024
+bluti2 %>%
   count(year) %>%
   filter(n > 1)  # Number of cases/recordings per years
 
-length(unique(bluti1$ring))
+length(unique(bluti2$ring))  # We have recordings of a total of 1150 different female birds across the years, 1134 when we remove cases where suc < 0
 
-nr_birds <- bluti1 %>%
-  count(ring) # I think this would be useful to identify how many birds there actually are and how many times they are repeated in the dataset (how many years their breeding attempts have been recorded)
-# According to that bit of code, we have 1151 female blue tits for which we have recorded at least 1 breeding season...
-nr_birds %>% filter(is.na(ring))# ...and we have 395 breeding attempts recording for which we don't have the information of the parents.
+nr_birds2 <- bluti2 %>%
+  count(ring)  # storing how many times we have recorded each female (including duplicates)
+nr_birds2 %>% summarise(n = mean(n))  # On average, we have recorded 1.47 breeding attempts of each female. 
+# Most females only breed one year (or we only have one recording on average of each female; maybe they've had more but we haven't noticed)
 
-mean(nr_birds$n)  # on average, each female breeds for 2 years approx. (I think?), assuming that we have recorded all lifetime breeding attempts
+max(nr_birds[, 2])  # the maximum number of breeding attempts recorded for the same female is 8...
+nr_birds[which(nr_birds$n == max(nr_birds[, 2])),"ring"]  # ...and it's of female S921907
 
-max(nr_birds[1:1150, 2])  # the maximum number of breeding attempts recorded for the same female is 8...
-nr_birds[which(nr_birds$n == max(nr_birds[1:1150, 2])),"ring"]  # ...and it's of female S921907
-
-str(bluti1)
+attempt1 <- nr_birds2 %>% filter(n == 1)  # 805 females for which we have only 1 breeding attempt recorded
+attempt2 <- nr_birds2 %>% filter(n == 2)  # 197 females for which we have only 1 breeding attempt recorded
+attempt3 <- nr_birds2 %>% filter(n == 3)  # 78 females for which we have only 1 breeding attempt recorded
+attempt4 <- nr_birds2 %>% filter(n == 4)  # 36 females for which we have only 1 breeding attempt recorded
+attempt5 <- nr_birds2 %>% filter(n == 5)  # 17 females for which we have only 1 breeding attempt recorded
+attempt6 <- nr_birds2 %>% filter(n == 6)  # 0 females for which we have only 1 breeding attempt recorded
+attempt7 <- nr_birds2 %>% filter(n == 7)  # 0 females for which we have only 1 breeding attempt recorded
+attempt8 <- nr_birds2 %>% filter(n == 8)  # 1 females for which we have only 1 breeding attempt recorded
 
 #bluti1$YEAR <- as.factor(bluti1$year)
 #bluti1$site <- as.factor(bluti1$site)
-#bluti1$suc <- as.numeric(bluti1$suc)
-
-bluti2 <- bluti1[-which(bluti1$suc < 0),]
+str(bluti2)
 bluti2$suc <- as.numeric(bluti2$suc)
 hist(bluti2$suc, xlab = "Number of chicks successfully fledged")
 
+bluti2 %>% summarise(suc = mean(suc))  # average number of successfully fledged chicks
+
+bluti2 %>% 
+  group_by(ring) %>%
+  count(age) %>%
+  filter(age == 6)
+ages <- bluti2 %>% 
+  group_by(ring) %>%
+  count(age) 
+age6 <- bluti2 %>% 
+  group_by(ring) %>%
+  count(age) %>%
+  filter(age == 6)
+
 ### Creating a new column that specifies age (in years old) of the bird at the recorded breeding attempt ###
-
-
  
 #years <- matrix(0, nrow=1, ncol=nrow(bluti3))  # here I create a matrix that has a single row and as many columns as rows has bluti3 (as cases are, after filtering NAs)
 #y <- 0  # here I create a variable that I will use within the loop 

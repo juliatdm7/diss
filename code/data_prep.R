@@ -8,11 +8,9 @@ library(dplyr)
 library(tidyverse)
 
 # Loading original datasets
-adults <- read.csv("data/Adults.csv")  # loading adult blue tits data
-adults <- as_tibble(adults)  # converting data into a tibble (easier to manage)
-adults  # visualising first rows of data
-allbirdphen <- read.csv("data/Bird_Phenology.csv")  # loading phenology data
-allbirdphen <- as_tibble(allbirdphen)  #converting data into a tibble (easier to manage)
+alladults <- as_tibble(read.csv("data/Adults.csv"))  # loading adult blue tits data as a tibble
+alladults  # visualising first rows of data
+allbirdphen <- as_tibble(read.csv("data/Bird_Phenology.csv"))  # loading phenology data as a tibble (easier to manage)
 allbirdphen  # visualising first rows of data
 
 # Selecting variables that will be useful for the project from the phenology data
@@ -21,32 +19,44 @@ blutiphen <- allbirdphen %>% filter(species == "bluti")  # first, we will select
 blutiphen <- blutiphen %>% select(year, site, box, fed, number.hatched, suc)  # we also select columns that will help us collate both databases into one by identifying individuals (i.e.: year, site and box)
 
 # Selecting variables that will be useful for the project from the adult data
-adultx <- adults %>% filter(season != "winter", sex == "F")  # we will remove all data coming from adults captured in the winter (as we may not have their corresponding breeding season data), from which we have 410 observations removed, and keep data from females only (removing 1979 cases, if I'm not mistaken).
-blutiadults <- adultx %>% select(ring, year, site, box, age)  # finally, we select the columns that we will use
+adults <- alladults %>% filter(season != "winter", sex == "F")  # we will remove all data coming from adults captured in the winter (as we may not have their corresponding breeding season data), from which we have 410 observations removed, and keep data from females only.
+
+# After this filtering, we remove 1979 observations (of male birds and of winter recordings), and we have a total of 1694 female adults ringed and identified of which we should have breeding success data in blutiphen (or, at least, of most of them)
+blutiadults <- adults %>% select(ring, year, site, box, age)  # finally, we select the columns that we will use
 
 # Rearranging datasets in ascending order of years, site and nestboxes
 blutiphen <- blutiphen %>% arrange(year, site, box)  
 blutiadults <- blutiadults %>% arrange(year, site, box)  
 
-### Creating a new database by collating  blutiadults_F and blutiphen using columns "year", "site" and "box" ###
+
+
+### Creating a new database by collating  blutiadults and blutiphen using columns "year", "site" and "box" ###
 
 # First, let's find out if there are duplicates by "year", "site" and "box" in both datasets:
 blutiphen %>%
   count(year, site, box) %>%
   filter(n > 1)  # there seem to be 5 duplicates in bluetiphen
+# These duplicates could be second broods (within the same breeding season and from the same female) or could be relays (if the first brood did not success):
+  # 2019, AVN site, box 2 seems to be a relay as the first entry has no success input
+  # 2019, EDI site, box 1 is also this case (except for the fact that in the first entry there is a 0 instead of a NA)
+  # 2019, MUN site, box 1 also probably follows the re-lay case
+  # as also probably does 2021 site DOW, nestbox 4
 blutiadults %>%
   count(year, site, box) %>%
   filter(n > 1)  # there seem to be 9 duplicates in blutiadults
+# These duplicates are re-measurements of the same females' tarsus length and body mass but later on (1-5 days later).
 
-# Since I don't know yet what they mean or if I want to remove them or not, I will not eliminate them
+# Since we haven't decided yet if we want (or have to) remove them or not, I will not eliminate them
 
-# Now, I expect that phenological data will not be available for all individuals in blutiadults database, so I want to know how many cases (rows) in blutiphen lack their corresponding case in blutiadults_F:
+# Now, I expect that phenological data will not be available for all individuals in blutiadults database, so I want to know how many cases (rows) in blutiphen lack their corresponding case in blutiadults:
 # I will use the function anti_join() to find it out:
-blutiadults %>%
+no_bs_data <- blutiadults %>%
   anti_join(blutiphen, by = c("year", "site", "box"))  # there are 5 rows present in blutiadults for which we do not have the data in blutiphen
 
-blutiphen %>%
+no_adult_data <- blutiphen %>%
   anti_join(blutiadults, by = c("year", "site", "box"))  # there are 395 rows in  blutiphen for which we do not have data in blutiadults
+# We store these problematic cases in their separate rows in case we want to reach for them in the future
+
 
 # I want to keep all the rows in blutiphen even if there is no corresponding data for it in blutiadults, but I don't really care about data in bluetiadults for which I have no data in blutiphen, as I won't be able to use it in the models.
 # Therefore, I'll filter blutiadults according to columns "year", "site" and "box" in blutiphen to keep those with their corresponding matching and I will collate that selection with blutiphen subdatabase:
@@ -54,6 +64,8 @@ filt_blutiadults <- blutiadults %>%
   semi_join(blutiphen, by = c("year", "site", "box")) # 1689 cases for which there is a corresponding case in blutiphen
 bluti1 <- filt_blutiadults %>%
   right_join(blutiphen, by = c("year", "site", "box")) # 2089 cases for which there is either info on both blutiadults database and blutiphen database or only on blutiphen database
+
+# There's a problem 
 
 ##bluti2 <- blutiadults %>%
 ##  full_join(blutiphen, by = c("year", "site", "box"))
@@ -67,6 +79,9 @@ bluti1 <- filt_blutiadults %>%
 
 bluti1 <- bluti1 %>% arrange(year, site, box)   # Let's rearrange the dataset again for better clarity when reading it
 head(bluti1)
+
+bluti4 <- blutiphen %>%
+  inner_join(blutiadults, by =c("year", "site", "box"))
 
 ### Exploring the dataset ###
 

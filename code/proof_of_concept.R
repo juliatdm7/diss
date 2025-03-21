@@ -10,3 +10,15 @@ plot(brattempts_age, type = "b", xlab="Number of breeding attempts recorded", yl
 
 bluti2$suc <- as.numeric(bluti2$suc)
 hist(bluti2$suc, xlab = "Number of chicks successfully fledged", col = "#C0AFE2", xlim=c(0,14),ylim = c(0,250), main = NULL)
+
+
+
+### Map of study sites ###
+
+install.packages("terra",dependencies=TRUE,repos="https://cloud.r-project.org")
+library(terra)
+install.packages("geodata",dependencies=TRUE,repos="https://cloud.r-project.org")
+library(geodata)
+
+wrld <- world(path=".")
+plot(wrld, xlim=c(-7,-2), ylim=c(55,59), col="light grey", border="black", xlab = "Longitude", ylab= "Latitude")

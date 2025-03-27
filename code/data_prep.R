@@ -8,9 +8,9 @@ library(dplyr)
 library(tidyverse)
 
 # Loading original datasets
-alladults <- as_tibble(read.csv("data/Adults.csv"))  # loading adult blue tits data as a tibble
+alladults <- as_tibble(read.csv("data/AdultsII.csv"))  # loading adult blue tits data as a tibble
 alladults  # visualising first rows of data
-allbirdphen <- as_tibble(read.csv("data/Bird_Phenology.csv"))  # loading phenology data as a tibble (easier to manage)
+allbirdphen <- as_tibble(read.csv("data/Bird_PhenologyII.csv"))  # loading phenology data as a tibble (easier to manage)
 allbirdphen  # visualising first rows of data
 
 # Selecting variables that will be useful for the project from the phenology data
@@ -35,7 +35,7 @@ blutiadults <- blutiadults %>% arrange(year, site, box)
 # First, let's find out if there are duplicates by "year", "site" and "box" in both datasets:
 blutiphen %>%
   count(year, site, box) %>%
-  filter(n > 1)  # there seem to be 5 duplicates in bluetiphen
+  filter(n > 1)  # there seem to be 5 duplicates in blutiphen
 # These duplicates could be second broods (within the same breeding season and from the same female) or could be relays (if the first brood did not success):
   # 2019, AVN site, box 2 seems to be a relay as the first entry has no success input
   # 2019, EDI site, box 1 is also this case (except for the fact that in the first entry there is a 0 instead of a NA)
@@ -46,7 +46,11 @@ blutiadults %>%
   filter(n > 1)  # there seem to be 9 duplicates in blutiadults
 # These duplicates are re-measurements of the same females' tarsus length and body mass but later on (1-5 days later).
 
-# Since we haven't decided yet if we want (or have to) remove them or not, I will not eliminate them
+blutiadults %>%
+  count(ring, year, site, box) %>%
+  filter(n > 1)  # In nestbox 7 of site BLG in year 2020 two females were catched for the same nest. What should we do about it?
+
+# For now, I will not remove replicates
 
 # Now, I expect that phenological data will not be available for all individuals in blutiadults database, so I want to know how many cases (rows) in blutiphen lack their corresponding case in blutiadults:
 # I will use the function anti_join() to find it out:

@@ -70,6 +70,10 @@ no_adult_data <- uqblutiphen %>%
 # We store these problematic cases in their separate rows in case we want to reach for them in the future
 
 
+# Ignore what's in between rows of ###:
+
+################################################################################################################################################################################################################################################
+################################################################################################################################################################################################################################################
 ## I want to keep all the rows in blutiphen even if there is no corresponding data for it in blutiadults, but I don't really care about data in bluetiadults for which I have no data in blutiphen, as I won't be able to use it in the models.
 ## Therefore, I'll filter blutiadults according to columns "year", "site" and "box" in blutiphen to keep those with their corresponding matching and I will collate that selection with blutiphen subdatabase:
 ##filt_blutiadults <- blutiadults %>% 
@@ -89,6 +93,9 @@ no_adult_data <- uqblutiphen %>%
 
 ##bluti1 <- bluti1 %>% arrange(year, site, box)   # Let's rearrange the dataset again for better clarity when reading it
 ##head(bluti1)
+################################################################################################################################################################################################################################################
+################################################################################################################################################################################################################################################
+
 
 # For now, I will only include in the database the shared cases between blutiphen and blutiadults because lack of data of either of them is problematic
 bluti1 <- uqblutiphen %>%

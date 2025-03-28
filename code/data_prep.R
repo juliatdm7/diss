@@ -50,15 +50,23 @@ blutiadults %>%
   count(ring, year, site, box) %>%
   filter(n > 1)  # In nestbox 7 of site BLG in year 2020 two females were catched for the same nest. What should we do about it?
 
-# For now, I will not remove replicates
+# I'm particularly interested in removing duplicates so that they don't complicate calculating the age of each individual in each event we've recorded of them
+# I'm not particularly worried about each case is removed for blutiadults as both will store the same information
+# However, for blutiphen I am interested in storing the re-lays rather than the failed breeding attempts (ask Hannah confirmation about this).
+# I'm gonna try to rearrange my dataset so that relays appear before failed attempts as the unique() function in dplyr will keep the first row it encounters.
+
+blutiphen <- blutiphen %>% arrange(year, site, box, desc(suc))  # now, the first row in the duplicates should be the failed attempt
+uqblutiphen <- distinct(blutiphen, year, site, box, .keep_all = T) 
+
+uqblutiadults <- distinct(blutiadults, ring, year, site, box, .keep_all = T)
 
 # Now, I expect that phenological data will not be available for all individuals in blutiadults database, so I want to know how many cases (rows) in blutiphen lack their corresponding case in blutiadults:
 # I will use the function anti_join() to find it out:
-no_bs_data <- blutiadults %>%
-  anti_join(blutiphen, by = c("year", "site", "box"))  # there are 5 rows present in blutiadults for which we do not have the data in blutiphen
+no_bs_data <- uqblutiadults %>%
+  anti_join(uqblutiphen, by = c("year", "site", "box"))  # there are 5 rows present in blutiadults for which we do not have the data in blutiphen
 
-no_adult_data <- blutiphen %>%
-  anti_join(blutiadults, by = c("year", "site", "box"))  # there are 395 rows in  blutiphen for which we do not have data in blutiadults
+no_adult_data <- uqblutiphen %>%
+  anti_join(uqblutiadults, by = c("year", "site", "box"))  # there are 395 rows in  blutiphen for which we do not have data in blutiadults
 # We store these problematic cases in their separate rows in case we want to reach for them in the future
 
 
@@ -83,10 +91,11 @@ no_adult_data <- blutiphen %>%
 ##head(bluti1)
 
 # For now, I will only include in the database the shared cases between blutiphen and blutiadults because lack of data of either of them is problematic
-bluti4 <- blutiphen %>%
-  inner_join(blutiadults, by =c("year", "site", "box"))  # warning: many-to-many relationships due to duplicates in both blutiphen and blutiadults databases. For now, we will just keep duplicate rows, but we might have to delete them (especially the duplicates in blutiadults)
+bluti1 <- uqblutiphen %>%
+  inner_join(uqblutiadults, by =c("year", "site", "box"))  # warning: many-to-many relationships due to duplicates in both blutiphen and blutiadults databases. For now, we will just keep duplicate rows, but we might have to delete them (especially the duplicates in blutiadults)
+# once we remove the duplicates, the warning of many-to-many is gone
 # There are some cases for which breeding success is -999. I don't exactly know what that means, but I will create a new bluti2 variable in which I don't include those cases
-bluti2 <- bluti4[-which(bluti4$suc < 0),]
+bluti2 <- bluti1[-which(bluti1$suc < 0),]
 bluti2 <- bluti2 %>% relocate(ring, year, site, box, age, fed, cs, suc)
 bluti2 <- bluti2 %>% arrange(year, site, box)
 
@@ -99,7 +108,7 @@ swaps
 # I will have to change the name of either "origin.nest" or "destination.nest" to "box" so that I can compare
 # Initially, which one I choose to change shouldn't matter as the experiment was an exchange.
 swaps <- swaps %>% rename(box = origin.nest)
-clutchswaps4 <- bluti4 %>% 
+clutchswaps1 <- bluti1 %>% 
     semi_join(swaps, by = c("year", "site", "box"))
 clutchswaps2 <- bluti2 %>% 
   semi_join(swaps, by = c("year", "site", "box"))
@@ -124,20 +133,19 @@ length(unique(bluti2$ring))  # We have recordings of a total of 1150 different f
 
 nr_birds2 <- bluti2 %>%
   count(ring)  # storing how many times we have recorded each female (including duplicates)
-nr_birds2 %>% summarise(n = mean(n))  # On average, we have recorded 1.47 breeding attempts of each female. 
+nr_birds2 %>% summarise(n = mean(n))  # On average, we have recorded 1.46 breeding attempts of each female. 
 # Most females only breed one year (or we only have one recording on average of each female; maybe they've had more but we haven't noticed)
 
-max(nr_birds[, 2])  # the maximum number of breeding attempts recorded for the same female is 8...
+max(nr_birds2[, 2])  # the maximum number of breeding attempts recorded for the same female is 7...
 nr_birds2[which(nr_birds2$n == max(nr_birds2[, 2])),"ring"]  # ...and it's of female S921907
 
-attempt1 <- nr_birds2 %>% filter(n == 1)  # 805 females for which we have only 1 breeding attempt recorded
-attempt2 <- nr_birds2 %>% filter(n == 2)  # 197 females for which we have only 1 breeding attempt recorded
-attempt3 <- nr_birds2 %>% filter(n == 3)  # 78 females for which we have only 1 breeding attempt recorded
-attempt4 <- nr_birds2 %>% filter(n == 4)  # 36 females for which we have only 1 breeding attempt recorded
-attempt5 <- nr_birds2 %>% filter(n == 5)  # 17 females for which we have only 1 breeding attempt recorded
-attempt6 <- nr_birds2 %>% filter(n == 6)  # 0 females for which we have only 1 breeding attempt recorded
-attempt7 <- nr_birds2 %>% filter(n == 7)  # 0 females for which we have only 1 breeding attempt recorded
-attempt8 <- nr_birds2 %>% filter(n == 8)  # 1 females for which we have only 1 breeding attempt recorded
+attempt1 <- nr_birds2 %>% filter(n == 1)  # 811 females for which we have only 1 breeding attempt recorded
+attempt2 <- nr_birds2 %>% filter(n == 2)  # 192 females for which we have 2 breeding attempts recorded
+attempt3 <- nr_birds2 %>% filter(n == 3)  # 78 females for which we have 3 breeding attempts recorded
+attempt4 <- nr_birds2 %>% filter(n == 4)  # 36 females for which we have 4 breeding attempts recorded
+attempt5 <- nr_birds2 %>% filter(n == 5)  # 16 females for which we have 5 breeding attempts recorded
+attempt6 <- nr_birds2 %>% filter(n == 6)  # 0 females for which we have 6 breeding attempts recorded
+attempt7 <- nr_birds2 %>% filter(n == 7)  # 1 females for which we have 7 breeding attempts recorded
 
 #bluti1$YEAR <- as.factor(bluti1$year)
 #bluti1$site <- as.factor(bluti1$site)
@@ -160,8 +168,7 @@ age6 <- bluti2 %>%
   filter(age == 6)
 
 ### Filtering the number of females at age 6 that were also recorded at age 5 (and therefore, we definitely know their age) ###
-# The following code is modified from code provided by ChatGPT
-# Find individuals recorded at age 5
+# Find individuals recorded at age 5 (code is modified from code provided by ChatGPT)
 birds_at_5 <- bluti2 %>%
   filter(age == 5) %>%
   select(ring) %>%
@@ -178,69 +185,93 @@ birds_at_only_6 <- bluti2 %>%
   anti_join(birds_at_5, by = "ring") %>%
   count(ring)   
 # There are 410 females of which we have recordings only when they're age 6 and not before; these could be problematic to include in the model
+which(bluti2$age==4)  # there are also 8 recordings of which age=4 (most likely age identification on the field was not possible)
 
 bluti2 %>% anti_join(birds_at_5, by = "ring")
 
 ### Creating a new column that specifies age (in years old) of the bird at the recorded breeding attempt ###
- 
-#years <- matrix(0, nrow=1, ncol=nrow(bluti3))  # here I create a matrix that has a single row and as many columns as rows has bluti3 (as cases are, after filtering NAs)
-#y <- 0  # here I create a variable that I will use within the loop 
-#for (i in 1:nrow(bluti3)) {
-#  y <- 0  # reset the variable to 0 after every iteration
-#  for (a in 1:i) {
-#    if (bluti3[a, "ring"] == bluti3[i, "ring"]) {
-#      y <- y + 1  # if the ring number from the iteration has been before, add the amount of times it has appeared so far
-#    }
-#  }
-#  years[1,i] <- y  # store for each case, how many years we've recorded that bird up until the one in which that recording was made
-#}
-#
-## Now, we can combine this with the informaton we have in the "age" column in bluti3 subdataset to estimate how old was each bird in each case:
-#
-#bluti3$y_old <- 0
-#for (i in 1:nrow(bluti3)) {
-#  if (bluti3[i,"age"] == 5) {
-#    bluti3[i,"y_old"] <- 1
-#  } else if (bluti3[i,"age"] == 6) {
-#    if (years[1,i] == 1) {
-#      bluti3[i, "y_old"] <- 2  # WARNING! Here we're assuming that all female birds that we catch for the first time and classify as "age = 6" are 2 years old, BUT THEY COULD BE OLDER SINCE WE CANNOT DETERMINE THEIR EXACT AGE PAST 2 YEARS THROUGH THEIR PLUMMAGE
-#    } else if (years[1,i] > 1) {
-#      bluti3[i, "y_old"] <- years[1,i]
-#    } else {
-#      bluti3[i, "y_old"] <- NA
-#    }
-#  }
-#}
+
+bluti2 %>% count(ring,year) %>% filter(n>1)  # if I'm not wrong, this means that no bird in the dataset has layed eggs successfully twice in the same year, so each recording should correspond to one year in their life 
+
+years <- matrix(0, nrow=1, ncol=nrow(bluti3))  # here I create a matrix that has a single row and as many columns as rows has bluti3 (as cases are, after filtering NAs)
+y <- 0  # here I create a variable that I will use within the loop 
+for (i in 1:nrow(bluti3)) {
+  y <- 0  # reset the variable to 0 after every iteration
+  for (a in 1:i) {
+    if (bluti3[a, "ring"] == bluti3[i, "ring"]) {
+      y <- y + 1  # if the ring number from the iteration has been before, add the amount of times it has appeared so far
+    }
+  }
+  years[1,i] <- y  # store for each case, how many years we've recorded that bird up until the one in which that recording was made
+}
+
+# Now, we can combine this with the informaton we have in the "age" column in bluti3 subdataset to estimate how old was each bird in each case:
+
+bluti3$y_old <- 0
+for (i in 1:nrow(bluti3)) {
+  if (bluti3[i,"age"] == 5) {
+    bluti3[i,"y_old"] <- 1
+  } else if (bluti3[i,"age"] == 6) {
+    if (years[1,i] == 1) {
+      bluti3[i, "y_old"] <- 2  # WARNING! Here we're assuming that all female birds that we catch for the first time and classify as "age = 6" are 2 years old, BUT THEY COULD BE OLDER SINCE WE CANNOT DETERMINE THEIR EXACT AGE PAST 2 YEARS THROUGH THEIR PLUMMAGE
+    } else if (years[1,i] > 1) {
+      bluti3[i, "y_old"] <- years[1,i]
+    } else {
+      bluti3[i, "y_old"] <- NA
+    }
+  }
+}
 
 # Creating a new data frame (tibble) that summarises breeding attempts per identified individual per year
 
-bluti3 <- bluti2 %>%
-  filter(!is.na(ring), !is.na(age))  # first, I need to remove all rows containing NAs in "ring" or "age" columns because otherwise the loop will not work
-br_attempts <- bluti3 %>% 
+br_attempts <- bluti2 %>% 
   group_by(year) %>%
   count(ring)
 
 # Converting br_attempts into a individual-by-year matrix
 ID_by_year <- br_attempts %>% 
-  pivot_wider(names_from=year,values_from=c(n))
+  pivot_wider(names_from=year,values_from=c(n)) %>%
+  replace_na(list('2014'=0, '2015'=0, '2016'=0, '2017'=0, '2018'=0, '2019'=0, '2020'=0, '2021'=0, '2022'=0, '2023'=0, '2024'=0))
+#ring <- ID_by_year$ring
+#ID_by_year <- ID_by_year[,-1]
+#ID_by_year$w <- rowSums(ID_by_year)  # here we have a column that has the number of breeding attempts recorded per
+#ID_by_year$ring <- ring
+#last_repr <- ID_by_year[,c(12,13)]
 
-x <- bluti3 %>% select(ring, year, age) %>% mutate(y_old = 0)
-case <- as.data.frame(matrix(0, nrow=1, ncol=4))
-colnames(case) <- c("ring", "year", "age", "y_old")
-case[1,"ring"] <- x[1,"ring"]
-years <- matrix(0, nrow=1, ncol=nrow(bluti3))  # here I create a matrix that has a single row and as many columns as rows has bluti3 (as cases are, after filtering NAs)
-y <- 0  # here I create a variable that I will use within the loop
-for (i in 1:nrow(x)) {
-  case[,1:4] <- 0  # reset the variable to 0 after every iteration
-  case[1,] <- x[i,]
-  for (a in 1:i) {
-    case[,1:4] <- 0  # reset the variable to 0 after every iteration
-    case[2,] <- x[a,]
-    if (x[a, "ring"] == x[i, "ring"] &
-        !x[a,"year"] == case[1,"year"]) {
-      y <- y + 1  # if the ring number from the iteration has been before, add the amount of times it has appeared so far
+# Now, I want to add a new column to my dataset that includes age of last breeding attempts
+# To start, I'll add a column that represents the total number of breeding attempts (which, in this case, also coincides with the number of breeding years recorded)
+
+bluti2$w <- 0  # adding an empty column to the data frame that will store age at last breeding attempt
+
+for (a in 1:nrow(bluti2)) {
+  for (i in 1:nrow(last_repr)) {
+    if (bluti2[a,"ring"] == last_repr[i,"ring"]) {
+      bluti2[a,"w"] <- last_repr[i,"w"]
     }
-    case[1,] <- x[a,]
   }
-  years[1,i] <- y  # store for each case, how many years we've recorded that bird up until the one in which that recording was made
+}  # this loop specifies number of total breeding attempts recorded of each female bird to each of their cases in the dataframe
+
+
+# Now, to create a column for age in years old
+
+
+bluti2$y_old <- 0
+
+n <- 0
+for (i in 1:nrow(bluti2)) {
+  if (bluti2[i,"age"]==4) {
+    bluti2[i,"y_old"] <- 1
+  } else if (bluti2[i, "age"]==5) {
+    bluti2[i,"y_old"] <- 1
+  } else if (bluti2[i, "age"]==6) {
+    n <- 0
+    for (a in 1:i) {
+      if (bluti2[i,"ring"] == bluti2[a, "ring"]) {
+        n <- n + 1
+      } 
+    }
+    bluti2[i,"y_old"] <- n
+  }
 }
+
+# I think it worked!

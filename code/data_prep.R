@@ -257,6 +257,9 @@ for (a in 1:nrow(bluti2)) {
 
 bluti2$y_old <- 0
 
+bluti2_age6 <- bluti2 %>%
+  filter(age==6)
+
 n <- 0
 for (i in 1:nrow(bluti2)) {
   if (bluti2[i,"age"]==4) {
@@ -264,9 +267,9 @@ for (i in 1:nrow(bluti2)) {
   } else if (bluti2[i, "age"]==5) {
     bluti2[i,"y_old"] <- 1
   } else if (bluti2[i, "age"]==6) {
-    n <- 0
+    n <- 1
     for (a in 1:i) {
-      if (bluti2[i,"ring"] == bluti2[a, "ring"]) {
+      if (bluti2[i,"ring"] == bluti2[a, "ring"] & bluti2[a,"age"] == 6) {
         n <- n + 1
       } 
     }
@@ -274,4 +277,15 @@ for (i in 1:nrow(bluti2)) {
   }
 }
 
+
 # I think it worked!
+
+# Now, I need to change the column "w" (age at last breeding attempt)
+bluti3 <- bluti2
+x <- 0
+for (i in 1:nrow(bluti3)) {
+  if (bluti3[i, "age"] == 6 & !(bluti3[i,"ring"] %in% x)) {
+    bluti3[i, "w"] <- bluti3[i, "w"] + 1
+  }
+  x <- c(x, bluti3[i,"ring"])
+}  # This isn't working exactly as I would want it to

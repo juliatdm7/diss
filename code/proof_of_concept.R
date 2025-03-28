@@ -97,6 +97,7 @@ ggplot(bluti2_suc_summary, aes(x=y_old, y=mean, fill = factor(y_old))) +
   geom_col(colour = "black") +
   labs(x = "Age of female parent", y = "Number of chicks successfully fledged") +
   theme_bw() +
+  guides(fill="none") +
   scale_x_continuous(breaks=seq(1,7,1))+
   scale_y_continuous(breaks=seq(0,14,1), expand = expansion(mult = c(0, .1)))
 
@@ -106,6 +107,7 @@ ggplot(bluti2_fed_summary, aes(x=y_old, y=mean, fill = factor(y_old))) +
   geom_col(colour = "black") +
   labs(x = "Age of female parent", y = "Number of chicks successfully fledged") +
   theme_bw() +
+  guides(fill="none") +
   scale_x_continuous(breaks=seq(1,7,1)) +
   scale_y_continuous(breaks=seq(0,200,10), expand = expansion(mult = c(0, .1)))
 
@@ -115,6 +117,7 @@ ggplot(bluti2_cs_summary, aes(x=y_old, y=mean, fill = factor(y_old))) +
   geom_col(colour = "black") +
   labs(x = "Age of female parent", y = "Clutch size") +
   theme_bw() +
+  guides(fill="none") +
   scale_x_continuous(breaks=seq(1,7,1)) +
   scale_y_continuous(breaks=seq(0,12,1),expand = expansion(mult = c(0, .1)))
 
@@ -157,6 +160,8 @@ bluti2_distinctring <- bluti2 %>%
 ggplot(bluti2_distinctring,aes(x=site, fill=site)) +
   geom_bar() +
   theme_bw() +
+  guides(fill="none") +
+  labs(x="Sites", y="Number of distinct birds") +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
   scale_y_continuous(breaks=seq(0,60,5), expand=expansion(mult=c(0,0.1)))
 
@@ -165,6 +170,8 @@ ggplot(bluti2_distinctring,aes(x=year, fill=factor(year))) +
   geom_bar() +
   theme(axis.text.x = element_text(angle = 60, vjust = 0.5, hjust=1)) +
   theme_bw() +
+  guides(fill="none") +
+  labs(x="Years", y="Number of distinct birds") +
   scale_x_continuous(breaks=seq(2014,2024,1)) +
   scale_y_continuous(breaks=seq(0,180,25), expand=expansion(mult=c(0,0.1)))
 

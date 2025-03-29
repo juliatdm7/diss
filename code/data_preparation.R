@@ -194,7 +194,7 @@ birds_at_only_6 <- bluti2 %>%
 # There are 410 females of which we have recordings only when they're age 6 and not before; these could be problematic to include in the model
 which(bluti2$age==4)  # there are also 8 recordings of which age=4 (most likely age identification on the field was not possible)
 
-bluti2 %>% anti_join(birds_at_5, by = "ring")
+bluti2_red <- bluti2 %>% anti_join(birds_at_only_6, by = "ring")  # smaller subdataset excluding birds first identified at age 6
 
 ### Creating a new column that specifies age (in years old) of the bird at the recorded breeding attempt ###
 

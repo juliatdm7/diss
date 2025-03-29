@@ -80,7 +80,27 @@ bluti2_fed_summary <- bluti2 %>%
 ## For clutch size
 bluti2_cs_summary <- bluti2 %>%
   group_by(y_old) %>%
-  na.omit(bluti2_fed_summary) %>%
+  na.omit(bluti2_cs_summary) %>%
+  summarise_at(vars(cs), list(mean=mean, sd=sd)) %>% 
+  as.data.frame()
+
+# I'll do the same, but with the reduced subdataset (excluding birds identified only at 6 years old)
+
+## For fledgeling success
+bluti2_red_suc_summary <- bluti2_red %>%
+  group_by(y_old) %>%
+  summarise_at(vars(suc), list(mean=mean, sd=sd)) %>% 
+  as.data.frame()
+## For lay date of first egg
+bluti2_red_fed_summary <- bluti2_red %>%
+  group_by(y_old) %>%
+  na.omit(bluti2_red_fed_summary) %>%
+  summarise_at(vars(fed), list(mean=mean, sd=sd)) %>% 
+  as.data.frame()
+## For clutch size
+bluti2_red_cs_summary <- bluti2_red %>%
+  group_by(y_old) %>%
+  na.omit(bluti2_red_cs_summary) %>%
   summarise_at(vars(cs), list(mean=mean, sd=sd)) %>% 
   as.data.frame()
 
@@ -101,15 +121,25 @@ ggplot(bluti2_suc_summary, aes(x=y_old, y=mean, fill = factor(y_old))) +
   scale_x_continuous(breaks=seq(1,7,1))+
   scale_y_continuous(breaks=seq(0,14,1), expand = expansion(mult = c(0, .1)))
 
-# Barplot with SD bars for fledgeling success
+# Barplot with SD bars for first egg lay date
 ggplot(bluti2_fed_summary, aes(x=y_old, y=mean, fill = factor(y_old))) +
   geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd)) +
   geom_col(colour = "black") +
-  labs(x = "Age of female parent", y = "Number of chicks successfully fledged") +
+  labs(x = "Age of female parent", y = "Lay date of first egg (1 = Jan 1st)") +
   theme_bw() +
   guides(fill="none") +
   scale_x_continuous(breaks=seq(1,7,1)) +
   scale_y_continuous(breaks=seq(0,200,10), expand = expansion(mult = c(0, .1)))
+
+# Mean +- SD for first egg lay date
+ggplot(bluti2_fed_summary, aes(x=y_old, y=mean, fill = factor(y_old))) +
+  geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd)) +
+  geom_point(colour = "black", size = 2) +
+  labs(x = "Age of female parent", y = "Lay date of first egg (1 = Jan 1st)") +
+  theme_bw() +
+  guides(fill="none") +
+  scale_x_continuous(breaks=seq(1,7,1)) +
+  scale_y_continuous(breaks=seq(0,200,10))
 
 # Barplot with SD bars for clutch size
 ggplot(bluti2_cs_summary, aes(x=y_old, y=mean, fill = factor(y_old))) +
@@ -122,29 +152,56 @@ ggplot(bluti2_cs_summary, aes(x=y_old, y=mean, fill = factor(y_old))) +
   scale_y_continuous(breaks=seq(0,12,1),expand = expansion(mult = c(0, .1)))
 
 
-# Geom_smooth() for fledgeling success
+# Geom_smooth() for fledgeling success (whole dataset)
 ggplot(bluti2_suc_summary, aes(x=y_old, y=mean)) +
   geom_point(colour = "black", size = 3) +
   geom_smooth(linewidth=0.8, linetype = 2, col="#248fc9") +
-  labs(x = "Age of female parent", y = "Number of chicks successfully fledged") +
+  labs(x = "Age of female parent", y = "Number of chicks successfully fledged", title="Complete dataset") +
   theme_bw() +
   scale_x_continuous(breaks=seq(1,7,1))+
   scale_y_continuous(breaks=seq(0,14,1))
 
-# Geom_smooth() for lay date of first egg
+# Geom_smooth() for fledgeling success (reduced subdataset)
+ggplot(bluti2_red_suc_summary, aes(x=y_old, y=mean)) +
+  geom_point(colour = "black", size = 3) +
+  geom_smooth(linewidth=0.8, linetype = 2, col="#248fc9") +
+  labs(x = "Age of female parent", y = "Number of chicks successfully fledged", title="Reduced dataset") +
+  theme_bw() +
+  scale_x_continuous(breaks=seq(1,7,1))+
+  scale_y_continuous(breaks=seq(0,14,1))
+
+# Geom_smooth() for lay date of first egg (whole dataset)
 ggplot(bluti2_fed_summary, aes(x=y_old, y=mean)) +
   geom_point(colour = "black", size = 3) +
   geom_smooth(linewidth=0.8, linetype = 2, col="#248fc9") +
-  labs(x = "Age of female parent", y = "Lay date of first egg (1 = Jan 1st)") +
+  labs(x = "Age of female parent", y = "Lay date of first egg (1 = Jan 1st)", title="Complete dataset") +
   theme_bw() +
   scale_x_continuous(breaks=seq(1,7,1))+
   scale_y_continuous(breaks=seq(0,14,1))  # for some reason, in this graph my y-axis values are gone
 
-# Geom_smooth() for clutch size
+# Geom_smooth() for lay date of first egg (reduced dataset)
+ggplot(bluti2_red_fed_summary, aes(x=y_old, y=mean)) +
+  geom_point(colour = "black", size = 3) +
+  geom_smooth(linewidth=0.8, linetype = 2, col="#248fc9") +
+  labs(x = "Age of female parent", y = "Lay date of first egg (1 = Jan 1st)", title="Reduced dataset") +
+  theme_bw() +
+  scale_x_continuous(breaks=seq(1,7,1))+
+  scale_y_continuous(breaks=seq(0,14,1))  # for some reason, in this graph my y-axis values are gone
+
+# Geom_smooth() for clutch size (complete dataset)
 ggplot(bluti2_cs_summary, aes(x=y_old, y=mean)) +
   geom_point(colour = "black", size = 3) +
   geom_smooth(linewidth=0.8, linetype = 2, col="#248fc9") +
-  labs(x = "Age of female parent", y = "Clutch size") +
+  labs(x = "Age of female parent", y = "Clutch size", title="Complete dataset") +
+  theme_bw() +
+  scale_x_continuous(breaks=seq(1,7,1))+
+  scale_y_continuous(breaks=seq(0,14,1))
+
+# Geom_smooth() for clutch size (reduced dataset)
+ggplot(bluti2_red_cs_summary, aes(x=y_old, y=mean)) +
+  geom_point(colour = "black", size = 3) +
+  geom_smooth(linewidth=0.8, linetype = 2, col="#248fc9") +
+  labs(x = "Age of female parent", y = "Clutch size", title="Reduced dataset") +
   theme_bw() +
   scale_x_continuous(breaks=seq(1,7,1))+
   scale_y_continuous(breaks=seq(0,14,1))

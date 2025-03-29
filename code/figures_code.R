@@ -131,11 +131,21 @@ ggplot(bluti2_fed_summary, aes(x=y_old, y=mean, fill = factor(y_old))) +
   scale_x_continuous(breaks=seq(1,7,1)) +
   scale_y_continuous(breaks=seq(0,200,10), expand = expansion(mult = c(0, .1)))
 
-# Mean +- SD for first egg lay date
+# Mean +- SD for first egg lay date (complete dataset)
 ggplot(bluti2_fed_summary, aes(x=y_old, y=mean, fill = factor(y_old))) +
   geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd)) +
   geom_point(colour = "black", size = 2) +
-  labs(x = "Age of female parent", y = "Lay date of first egg (1 = Jan 1st)") +
+  labs(x = "Age of female parent", y = "Lay date of first egg (1 = Jan 1st)", title="Complete dataset") +
+  theme_bw() +
+  guides(fill="none") +
+  scale_x_continuous(breaks=seq(1,7,1)) +
+  scale_y_continuous(breaks=seq(0,200,10))
+
+# Mean +- SD for first egg lay date (reduced dataset)
+ggplot(bluti2_red_fed_summary, aes(x=y_old, y=mean, fill = factor(y_old))) +
+  geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd)) +
+  geom_point(colour = "black", size = 2) +
+  labs(x = "Age of female parent", y = "Lay date of first egg (1 = Jan 1st)", title="Reduced dataset") +
   theme_bw() +
   guides(fill="none") +
   scale_x_continuous(breaks=seq(1,7,1)) +
@@ -222,6 +232,24 @@ ggplot(bluti2_distinctring,aes(x=site, fill=site)) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
   scale_y_continuous(breaks=seq(0,60,5), expand=expansion(mult=c(0,0.1)))
 
+# RECORDINGS (not distinct birds) per site and classifying by age (in years old). Complete dataset.
+ggplot(bluti2,aes(x=site, fill=factor(y_old))) +
+  geom_bar() +
+  theme_bw() +
+  guides(fill=guide_legend(title="Age in years old")) +
+  labs(x="Sites", y="Number of breeding attempts recorded", title="Complete dataset") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  scale_y_continuous(breaks=seq(0,100,5), expand=expansion(mult=c(0,0.1)))
+
+# RECORDINGS (not distinct birds) per site and classifying by age (in years old). Reduced dataset.
+ggplot(bluti2_red,aes(x=site, fill=factor(y_old))) +
+  geom_bar() +
+  theme_bw() +
+  guides(fill=guide_legend(title="Age in years old")) +
+  labs(x="Sites", y="Number of breeding attempts recorded", title="Reduced dataset") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  scale_y_continuous(breaks=seq(0,100,5), expand=expansion(mult=c(0,0.1)))
+
 # Distinct birds across years
 ggplot(bluti2_distinctring,aes(x=year, fill=factor(year))) +
   geom_bar() +
@@ -231,6 +259,24 @@ ggplot(bluti2_distinctring,aes(x=year, fill=factor(year))) +
   labs(x="Years", y="Number of distinct birds") +
   scale_x_continuous(breaks=seq(2014,2024,1)) +
   scale_y_continuous(breaks=seq(0,180,25), expand=expansion(mult=c(0,0.1)))
+
+# RECORDINGS (not distinct birds) per year and classifying by age (in years old). Complete dataset.
+ggplot(bluti2,aes(x=year, fill=factor(y_old))) +
+  geom_bar() +
+  theme_bw() +
+  guides(fill=guide_legend(title="Age in years old")) +
+  labs(x="Sites", y="Number of breeding attempts recorded", title="Complete dataset") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  scale_y_continuous(breaks=seq(0,300,20), expand=expansion(mult=c(0,0.1)))
+
+# RECORDINGS (not distinct birds) per site and classifying by age (in years old). Reduced dataset.
+ggplot(bluti2_red,aes(x=year, fill=factor(y_old))) +
+  geom_bar() +
+  theme_bw() +
+  guides(fill=guide_legend(title="Age in years old")) +
+  labs(x="Sites", y="Number of breeding attempts recorded", title="Reduced dataset") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  scale_y_continuous(breaks=seq(0,300,20), expand=expansion(mult=c(0,0.1)))
 
 ### Map of study sites ###### Map of study_oldy sites ###
 

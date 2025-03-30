@@ -15,7 +15,11 @@ ggplot(data=brattempts_age, aes(x=x, y=y)) +
   geom_point(size = 2) +
   geom_line(colour="#248fc9") +
   theme_bw() +
-  labs(x="Number of breeding attempts", y="Number of females") +
+  theme( axis.title = element_text(size = 13), 
+         axis.text = element_text(size = 11),
+         axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+         axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  labs(x="Number of breeding attempts", y="Number of distinct females") +
   scale_x_continuous(breaks=seq(1,7,1)) +
   theme(axis.title = element_text(size = 14), axis.text = element_text(size = 12))
   
@@ -32,6 +36,19 @@ ggplot(bluti2, aes(suc)) +
   scale_x_continuous(breaks=seq(0,13,1)) +
   theme(axis.title = element_text(size = 14), axis.text = element_text(size = 12))
 
+# Distribution of clutch size per year
+ggplot(bluti2, aes(x=year, y=suc)) +
+  geom_point(size=2) +
+  labs(x = "Years", y = "Mean number of chicks fledged successfully") +
+  theme_bw() +
+  scale_x_continuous(breaks=seq(2014,2024,1)) +
+  scale_y_continuous(breaks=seq(0,16,1), limits = c(0, 16)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+
 # Lay date of first egg
 ggplot(bluti2, aes(fed)) +
   geom_histogram(colour = "black", fill = "#59B7EB", binwidth=1) +
@@ -40,6 +57,17 @@ ggplot(bluti2, aes(fed)) +
   scale_x_continuous(breaks=seq(100,150,5)) +
   theme(axis.title = element_text(size = 14), axis.text = element_text(size = 12))
 
+# Distribution of first egg lay date per year
+ggplot(bluti2, aes(x=year, y=fed)) +
+  geom_point(size=2) +
+  labs(x = "Years", y = "Mean number of chicks fledged successfully") +
+  theme_bw() +
+  scale_x_continuous(breaks=seq(2014,2024,1)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
 # Clutch size
 ggplot(bluti2, aes(cs)) +
   geom_histogram(colour = "black", fill = "#A2DEFF", binwidth=1) +
@@ -47,6 +75,17 @@ ggplot(bluti2, aes(cs)) +
   theme_bw() +
   scale_x_continuous(breaks=seq(0,23,2)) +
   theme(axis.title = element_text(size = 14), axis.text = element_text(size = 12))
+
+# Distribution of clutch size per year
+ggplot(bluti2, aes(x=year, y=cs)) +
+  geom_point(size=2) +
+  labs(x = "Years", y = "Clutch size") +
+  theme_bw() +
+  scale_x_continuous(breaks=seq(2014,2024,1)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
 
 ### Age-specific patterns of breeding traits ###
 
@@ -80,6 +119,7 @@ ggplot(bluti2, aes(x=y_old, y=cs, group=y_old)) +
 ## For fledgeling success
 bluti2_suc_summary <- bluti2 %>%
   group_by(y_old) %>%
+  na.omit(bluti2_fed_summary) %>%
   summarise_at(vars(suc), list(mean=mean, sd=sd)) %>% 
   as.data.frame()
 ## For lay date of first egg
@@ -116,8 +156,8 @@ bluti2_red_cs_summary <- bluti2_red %>%
   as.data.frame()
 
 # Scatter plot of fledgeling success per age group
-ggplot(bluti2, aes(x=y_old, y=fed, fill=factor(w))) +
-  geom_point(aes(fill=w, alpha = 0.01)) +
+ggplot(bluti2, aes(x=y_old, y=fed, fill=factor(y_old))) +
+  geom_point(aes(fill=y_old, alpha = 0.01)) +
   labs(x = "Age of female parent", y = "First egg lay date (ordinal numbers)") +
   theme_bw() +
   scale_x_continuous(breaks=seq(1,7,1)) 
@@ -150,7 +190,11 @@ ggplot(bluti2_fed_summary, aes(x=y_old, y=mean, fill = factor(y_old))) +
   theme_bw() +
   guides(fill="none") +
   scale_x_continuous(breaks=seq(1,7,1)) +
-  scale_y_continuous(breaks=seq(0,200,10))
+  scale_y_continuous(breaks=seq(0,200,10)) +
+  theme(axis.title = element_text(size = 13), 
+        axis.text = element_text(size = 11),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
 
 # Mean +- SD for first egg lay date (reduced dataset)
 ggplot(bluti2_red_fed_summary, aes(x=y_old, y=mean, fill = factor(y_old))) +
@@ -180,7 +224,11 @@ ggplot(bluti2_suc_summary, aes(x=y_old, y=mean)) +
   labs(x = "Age of female parent", y = "Number of chicks successfully fledged", title="Complete dataset") +
   theme_bw() +
   scale_x_continuous(breaks=seq(1,7,1))+
-  scale_y_continuous(breaks=seq(0,14,1))
+  scale_y_continuous(breaks=seq(0,14,1)) +
+  theme(axis.title = element_text(size = 13), 
+        axis.text = element_text(size = 11),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
 
 # Geom_smooth() for fledgeling success (reduced subdataset)
 ggplot(bluti2_red_suc_summary, aes(x=y_old, y=mean)) +
@@ -188,8 +236,12 @@ ggplot(bluti2_red_suc_summary, aes(x=y_old, y=mean)) +
   geom_smooth(linewidth=0.8, linetype = 2, col="#248fc9") +
   labs(x = "Age of female parent", y = "Number of chicks successfully fledged", title="Reduced dataset") +
   theme_bw() +
-  scale_x_continuous(breaks=seq(1,7,1))+
-  scale_y_continuous(breaks=seq(0,14,1))
+  scale_x_continuous(breaks=seq(1,7,1)) +
+  scale_y_continuous(breaks=seq(0,14,1)) +
+  theme(axis.title = element_text(size = 13), 
+        axis.text = element_text(size = 11),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
 
 # Geom_smooth() for lay date of first egg (whole dataset)
 ggplot(bluti2_fed_summary, aes(x=y_old, y=mean)) +
@@ -197,8 +249,12 @@ ggplot(bluti2_fed_summary, aes(x=y_old, y=mean)) +
   geom_smooth(linewidth=0.8, linetype = 2, col="#248fc9") +
   labs(x = "Age of female parent", y = "Lay date of first egg (1 = Jan 1st)", title="Complete dataset") +
   theme_bw() +
-  scale_x_continuous(breaks=seq(1,7,1))+
-  scale_y_continuous(breaks=seq(0,14,1))  # for some reason, in this graph my y-axis values are gone
+  scale_x_continuous(breaks=seq(1,7,1)) +
+  scale_y_continuous(breaks=seq(100,140,5)) +
+  theme(axis.title = element_text(size = 13), 
+        axis.text = element_text(size = 11),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) # for some reason, in this graph my y-axis values are gone
 
 # Geom_smooth() for lay date of first egg (reduced dataset)
 ggplot(bluti2_red_fed_summary, aes(x=y_old, y=mean)) +
@@ -206,7 +262,7 @@ ggplot(bluti2_red_fed_summary, aes(x=y_old, y=mean)) +
   geom_smooth(linewidth=0.8, linetype = 2, col="#248fc9") +
   labs(x = "Age of female parent", y = "Lay date of first egg (1 = Jan 1st)", title="Reduced dataset") +
   theme_bw() +
-  scale_x_continuous(breaks=seq(1,7,1))+
+  scale_x_continuous(breaks=seq(1,7,1)) +
   scale_y_continuous(breaks=seq(0,14,1))  # for some reason, in this graph my y-axis values are gone
 
 # Geom_smooth() for clutch size (complete dataset)
@@ -215,8 +271,12 @@ ggplot(bluti2_cs_summary, aes(x=y_old, y=mean)) +
   geom_smooth(linewidth=0.8, linetype = 2, col="#248fc9") +
   labs(x = "Age of female parent", y = "Clutch size", title="Complete dataset") +
   theme_bw() +
-  scale_x_continuous(breaks=seq(1,7,1))+
-  scale_y_continuous(breaks=seq(0,14,1))
+  scale_x_continuous(breaks=seq(1,7,1)) +
+  scale_y_continuous(breaks=seq(0,14,1)) +
+  theme(axis.title = element_text(size = 13), 
+        axis.text = element_text(size = 11),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
 
 # Geom_smooth() for clutch size (reduced dataset)
 ggplot(bluti2_red_cs_summary, aes(x=y_old, y=mean)) +
@@ -232,16 +292,20 @@ ggplot(bluti2_red_cs_summary, aes(x=y_old, y=mean)) +
 
 # Distinct rings:
 bluti2_distinctring <- bluti2 %>% 
-  distinct(ring) 
+  distinct(ring, .keep_all = T) 
 
 # Distinct birds across sites
 ggplot(bluti2_distinctring,aes(x=site, fill=site)) +
   geom_bar() +
   theme_bw() +
   guides(fill="none") +
-  labs(x="Sites", y="Number of distinct birds") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
-  scale_y_continuous(breaks=seq(0,60,5), expand=expansion(mult=c(0,0.1)))
+  labs(x="Sites", y="Number of distinct females") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        axis.title = element_text(size = 13), 
+        axis.text = element_text(size = 11),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  scale_y_continuous(breaks=seq(0,60,5), expand=expansion(mult=c(0,0.1))) 
 
 # RECORDINGS (not distinct birds) per site and classifying by age (in years old). Complete dataset.
 ggplot(bluti2,aes(x=site, fill=factor(y_old))) +
@@ -264,10 +328,14 @@ ggplot(bluti2_red,aes(x=site, fill=factor(y_old))) +
 # Distinct birds across years
 ggplot(bluti2_distinctring,aes(x=year, fill=factor(year))) +
   geom_bar() +
-  theme(axis.text.x = element_text(angle = 60, vjust = 0.5, hjust=1)) +
   theme_bw() +
+  theme(axis.text.x = element_text(vjust = 0.5),
+        axis.title = element_text(size = 13), 
+        axis.text = element_text(size = 11),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
   guides(fill="none") +
-  labs(x="Years", y="Number of distinct birds") +
+  labs(x="Years", y="Number of distinct females") +
   scale_x_continuous(breaks=seq(2014,2024,1)) +
   scale_y_continuous(breaks=seq(0,180,25), expand=expansion(mult=c(0,0.1)))
 
@@ -276,7 +344,7 @@ ggplot(bluti2,aes(x=year, fill=factor(y_old))) +
   geom_bar() +
   theme_bw() +
   guides(fill=guide_legend(title="Age in years old")) +
-  labs(x="Sites", y="Number of breeding attempts recorded", title="Complete dataset") +
+  labs(x="Sites", y="Number of recordings", title="Complete dataset") +
   scale_x_continuous(breaks=seq(2014,2024,1)) +
   scale_y_continuous(breaks=seq(0,300,20), expand=expansion(mult=c(0,0.1)))
 

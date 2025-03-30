@@ -285,7 +285,7 @@ for (i in 1:nrow(bluti2)) {
 }
 
 
-# I think it worked!
+# This most likely won't work as there are some females that are recorded every other year (intermittently)
 
 # Now, I need to change the column "w" (age at last breeding attempt)
 bluti3 <- bluti2

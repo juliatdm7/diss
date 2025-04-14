@@ -23,7 +23,8 @@ ggplot() +
   geom_sf(data = scotland, fill = "lightgray", alpha = 0.5, linewidth = 0.5, colour="black") + # borders of Scotland
   geom_sf(data = sites, pch = 16, size = 2, color = "#248fc9", alpha = 0.7) + #Transect sites
   theme_bw() +  # Gridlines and latitude as axes
+  labs(x="Longitude", y="Latitude") +
   coord_sf(xlim = c(-8, -1), ylim = c(54.6, 59.55)) 
-
+ggsave("figures/sitesMap_II.png")
 
 

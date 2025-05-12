@@ -196,103 +196,150 @@ which(bluti2$age==4)  # there are also 8 recordings of which age=4 (most likely 
 
 bluti2_red <- bluti2 %>% anti_join(birds_at_only_6, by = "ring")  # smaller subdataset excluding birds first identified at age 6
 
-### Creating a new column that specifies age (in years old) of the bird at the recorded breeding attempt ###
 
-bluti2 %>% count(ring,year) %>% filter(n>1)  # if I'm not wrong, this means that no bird in the dataset has layed eggs successfully twice in the same year, so each recording should correspond to one year in their life 
 
-years <- matrix(0, nrow=1, ncol=nrow(bluti3))  # here I create a matrix that has a single row and as many columns as rows has bluti3 (as cases are, after filtering NAs)
-y <- 0  # here I create a variable that I will use within the loop 
-for (i in 1:nrow(bluti3)) {
-  y <- 0  # reset the variable to 0 after every iteration
-  for (a in 1:i) {
-    if (bluti3[a, "ring"] == bluti3[i, "ring"]) {
-      y <- y + 1  # if the ring number from the iteration has been before, add the amount of times it has appeared so far
-    }
-  }
-  years[1,i] <- y  # store for each case, how many years we've recorded that bird up until the one in which that recording was made
-}
+### Trying to create age column that specifies age (in years old) of the bird at the recorded breeding attempt with Hannah's help ###
 
-# Now, we can combine this with the informaton we have in the "age" column in bluti3 subdataset to estimate how old was each bird in each case:
+inds <- data.frame(ring = sort(unique(bluti2$ring)), firstcaught = tapply(bluti2$year, bluti2$ring, min), firstageclass = tapply(bluti2$age, bluti2$ring, min))  # define a new dataframe with each unique female, the year she was first caught and the age she was 
+inds$hatchyear <- ifelse(inds$firstageclass==6, (inds$firstcaught - 2), (inds$firstcaught - 1))  # calculate an estimated hatch year based on the age class when first caught (assume age class 4 were yearlings) 
+bluti2$hatchyear <- inds$hatchyear[match(bluti2$ring, inds$ring)]  # match hatch year back to original dataframe
+bluti2$yo <- bluti2$year - bluti2$hatchyear  # calculate age
 
-bluti3$y_old <- 0
-for (i in 1:nrow(bluti3)) {
-  if (bluti3[i,"age"] == 5) {
-    bluti3[i,"y_old"] <- 1
-  } else if (bluti3[i,"age"] == 6) {
-    if (years[1,i] == 1) {
-      bluti3[i, "y_old"] <- 2  # WARNING! Here we're assuming that all female birds that we catch for the first time and classify as "age = 6" are 2 years old, BUT THEY COULD BE OLDER SINCE WE CANNOT DETERMINE THEIR EXACT AGE PAST 2 YEARS THROUGH THEIR PLUMMAGE
-    } else if (years[1,i] > 1) {
-      bluti3[i, "y_old"] <- years[1,i]
-    } else {
-      bluti3[i, "y_old"] <- NA
-    }
-  }
-}
 
-# Creating a new data frame (tibble) that summarises breeding attempts per identified individual per year
+### Trying to create a "age at last breeding attempt" column ###
 
-br_attempts <- bluti2 %>% 
-  group_by(year) %>%
-  count(ring)
+w <- tapply(bluti2$yo, bluti2$ring, max)
+w <- as.data.frame(w)
+w$rings <- rownames(w)
+bluti2$w <- w$w[match(bluti2$ring, w$rings)]
 
-# Converting br_attempts into a individual-by-year matrix
-ID_by_year <- br_attempts %>% 
-  pivot_wider(names_from=year,values_from=c(n)) %>%
-  replace_na(list('2014'=0, '2015'=0, '2016'=0, '2017'=0, '2018'=0, '2019'=0, '2020'=0, '2021'=0, '2022'=0, '2023'=0, '2024'=0))
+
+## The following code is not being used anymore ##
+
+## Creating a new data frame (tibble) that summarises breeding attempts per identified individual per year
+
+#br_attempts <- bluti2 %>% 
+#  group_by(year) %>%
+#  count(ring)
+
+## Converting br_attempts into a individual-by-year matrix
+#ID_by_year <- br_attempts %>% 
+#  pivot_wider(names_from=year,values_from=c(n)) %>%
+#  replace_na(list('2014'=0, '2015'=0, '2016'=0, '2017'=0, '2018'=0, '2019'=0, '2020'=0, '2021'=0, '2022'=0, '2023'=0, '2024'=0))
 #ring <- ID_by_year$ring
 #ID_by_year <- ID_by_year[,-1]
 #ID_by_year$w <- rowSums(ID_by_year)  # here we have a column that has the number of breeding attempts recorded per
 #ID_by_year$ring <- ring
 #last_repr <- ID_by_year[,c(12,13)]
 
+
+
+#### Creating a new column that specifies age (in years old) of the bird at the recorded breeding attempt ###
+
+#bluti2 %>% count(ring,year) %>% filter(n>1)  # if I'm not wrong, this means that no bird in the dataset has laid eggs successfully twice in the same year, so each recording should correspond to one year in their life 
+
+#years <- matrix(0, nrow=1, ncol=nrow(bluti2))  # here I create a matrix that has a single row and as many columns as rows has bluti3 (as cases are, after filtering NAs)
+#y <- 0  # here I create a variable that I will use within the loop 
+#for (i in 1:nrow(bluti2)) {
+#  y <- 0  # reset the variable to 0 after every iteration
+#  for (a in 1:i) {
+#    if (bluti2[a, "ring"] == bluti2[i, "ring"]) {
+#      y <- y + 1  # if the ring number from the iteration has been before, add the amount of times it has appeared so far
+#    }
+#  }
+#  years[1,i] <- y  # store for each case, how many years we've recorded that bird up until the one in which that recording was made
+#}
+
+## Now, we can combine this with the informaton we have in the "age" column in bluti3 subdataset to estimate how old was each bird in each case:
+
+#bluti3$y_old <- 0
+#for (i in 1:nrow(bluti3)) {
+#  if (bluti3[i,"age"] == 5) {
+#    bluti3[i,"y_old"] <- 1
+#  } else if (bluti3[i,"age"] == 6) {
+#    if (years[1,i] == 1) {
+#      bluti3[i, "y_old"] <- 2  # WARNING! Here we're assuming that all female birds that we catch for the first time and classify as "age = 6" are 2 years old, BUT THEY COULD BE OLDER SINCE WE CANNOT DETERMINE THEIR EXACT AGE PAST 2 YEARS THROUGH THEIR PLUMMAGE
+#    } else if (years[1,i] > 1) {
+#      bluti3[i, "y_old"] <- years[1,i]
+#    } else {
+#      bluti3[i, "y_old"] <- NA
+#    }
+#  }
+#}
+
+
+
 # Now, I want to add a new column to my dataset that includes age of last breeding attempts
 # To start, I'll add a column that represents the total number of breeding attempts (which, in this case, also coincides with the number of breeding years recorded)
 
-bluti2$w <- 0  # adding an empty column to the data frame that will store age at last breeding attempt
+#bluti2$w <- 0  # adding an empty column to the data frame that will store age at last breeding attempt
 
-for (a in 1:nrow(bluti2)) {
-  for (i in 1:nrow(last_repr)) {
-    if (bluti2[a,"ring"] == last_repr[i,"ring"]) {
-      bluti2[a,"w"] <- last_repr[i,"w"]
-    }
-  }
-}  # this loop specifies number of total breeding attempts recorded of each female bird to each of their cases in the dataframe
-
-
-# Now, to create a column for age in years old
+#for (a in 1:nrow(bluti2)) {
+#  for (i in 1:nrow(last_repr)) {
+#    if (bluti2[a,"ring"] == last_repr[i,"ring"]) {
+#      bluti2[a,"w"] <- last_repr[i,"w"]
+#    }
+#  }
+#}  # this loop specifies number of total breeding attempts recorded of each female bird to each of their cases in the dataframe
 
 
-bluti2$y_old <- 0
+## Now, to create a column for age in years old
 
-bluti2_age6 <- bluti2 %>%
-  filter(age==6)
+#bluti3 <- bluti2
 
-n <- 0
-for (i in 1:nrow(bluti2)) {
-  if (bluti2[i,"age"]==4) {
-    bluti2[i,"y_old"] <- 1
-  } else if (bluti2[i, "age"]==5) {
-    bluti2[i,"y_old"] <- 1
-  } else if (bluti2[i, "age"]==6) {
-    n <- 1
-    for (a in 1:i) {
-      if (bluti2[i,"ring"] == bluti2[a, "ring"] & bluti2[a,"age"] == 6) {
-        n <- n + 1
-      } 
-    }
-    bluti2[i,"y_old"] <- n
-  }
-}
+#bluti3$y_old <- 0
+
+#bluti3_age6 <- bluti3 %>%
+#  filter(age==6)
+
+
+#n <- 0
+#for (i in 1:nrow(bluti3)) {
+#  if (bluti3[i,"age"]==4) {
+#    bluti3[i,"y_old"] <- 1
+#  } else if (bluti3[i, "age"]==5) {
+#    bluti3[i,"y_old"] <- 1
+#  } else if (bluti3[i, "age"]==6) {
+#    n <- 1
+#    for (a in 1:i) {
+#      if (bluti3[i,"ring"] == bluti3[a, "ring"] & bluti3[a,"age"] == 6) {
+#        n <- n + 1
+#      } 
+#    }
+#    bluti3[i,"y_old"] <- n
+#  }
+#}
+
+
+#n <- 0
+#for (i in 1:nrow(bluti3)) {
+#  if (bluti3[i,"age"]==4) {
+#    bluti3[i,"y_old"] <- 1
+#  } else if (bluti3[i, "age"]==5) {
+#    bluti3[i,"y_old"] <- 1
+#  } else if (bluti3[i, "age"]==6) {
+#    n <- 2
+#    for (a in 1:i) {
+#      if (bluti3[i,"ring"] == bluti3[a, "ring"] & bluti3[a,"age"] == 6) {
+#        diff <- bluti3[i, "year"] - bluti3[i, "year"]
+#        n <- n + diff
+#      } 
+#    }
+#    bluti3[i,"y_old"] <- n
+#  }
+#}    # I have to go over this again; it's not working. Look ID_by_year to check if it's working with 0s in the data
+
+# Would it be possible to create y_old based on ID_by_year instead of based on bluti2 or bluti3?
 
 
 # This most likely won't work as there are some females that are recorded every other year (intermittently)
 
 # Now, I need to change the column "w" (age at last breeding attempt)
-bluti3 <- bluti2
-x <- 0
-for (i in 1:nrow(bluti3)) {
-  if (bluti3[i, "age"] == 6 & !(bluti3[i,"ring"] %in% x)) {
-    bluti3[i, "w"] <- bluti3[i, "w"] + 1
-  }
-  x <- c(x, bluti3[i,"ring"])
-}  # This isn't working exactly as I would want it to
+#bluti3 <- bluti2
+#x <- 0
+#for (i in 1:nrow(bluti3)) {
+#  if (bluti3[i, "age"] == 6 & !(bluti3[i,"ring"] %in% x)) {
+#    bluti3[i, "w"] <- bluti3[i, "w"] + 1
+#  }
+#  x <- c(x, bluti3[i,"ring"])
+#}  # This isn't working exactly as I would want it to

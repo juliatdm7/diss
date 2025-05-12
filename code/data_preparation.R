@@ -6,6 +6,7 @@
 # Loading necessary packages
 library(dplyr)  
 library(tidyverse)
+library(openxlsx)
 
 # Loading original datasets
 alladults <- as_tibble(read.csv("data/AdultsII.csv"))  # loading adult blue tits data as a tibble
@@ -212,6 +213,11 @@ w <- tapply(bluti2$yo, bluti2$ring, max)
 w <- as.data.frame(w)
 w$rings <- rownames(w)
 bluti2$w <- w$w[match(bluti2$ring, w$rings)]
+
+
+blutidf <- bluti2 %>% select(ring, year, site, box, fed, cs, suc, hatchyear, age, yo, w)  # re-organising dataset) 
+
+write.xlsx(blutidf, "data/blutidf.xlsx")  # final database
 
 
 ## The following code is not being used anymore ##

@@ -193,7 +193,7 @@ birds_at_only_6 <- bluti2 %>%
   anti_join(birds_at_5, by = "ring") %>%
   count(ring)   
 # There are 410 females of which we have recordings only when they're age 6 and not before; these could be problematic to include in the model
-which(bluti2$age==4)  # there are also 8 recordings of which age=4 (most likely age identification on the field was not possible)
+age4 <- bluti2 %>% filter(age == 4)  # there are also 8 recordings of which age=4 (most likely age identification on the field was not possible)
 
 bluti2_red <- bluti2 %>% anti_join(birds_at_only_6, by = "ring")  # smaller subdataset excluding birds first identified at age 6
 
@@ -218,6 +218,9 @@ bluti2$w <- w$w[match(bluti2$ring, w$rings)]
 blutidf <- bluti2 %>% select(ring, year, site, box, fed, cs, suc, hatchyear, age, yo, w)  # re-organising dataset) 
 
 write.xlsx(blutidf, "data/blutidf.xlsx")  # final database
+
+
+### Excluding observations within clutch swaps ###
 
 
 ## The following code is not being used anymore ##

@@ -107,27 +107,6 @@ bluti2 <- bluti1[-which(bluti1$suc < 0),]
 bluti2 <- bluti2 %>% relocate(ring, year, site, box, age, fed, cs, suc)
 bluti2 <- bluti2 %>% arrange(year, site, box)
 
-### Clutch swap treatment ###
-
-# Between 2017 and 2019, a clutch-swap experiment took place. The results of these experiments may have an influence on suc, and we should account for this.
-# First, we need to find how many and which cases in the bluti4 database were part of this experiment:
-swaps <- as_tibble(read.csv("data/clutchswaps.csv"))
-swaps
-# I will have to change the name of either "origin.nest" or "destination.nest" to "box" so that I can compare
-# Initially, which one I choose to change shouldn't matter as the experiment was an exchange.
-swaps <- swaps %>% rename(box = origin.nest)
-clutchswaps1 <- bluti1 %>% 
-    semi_join(swaps, by = c("year", "site", "box"))
-clutchswaps2 <- bluti2 %>% 
-  semi_join(swaps, by = c("year", "site", "box"))
-
-# According to this, 241 cases (or 240, when removing cases were suc < 0) out of a total of 1694 were involved in the clutch swap experiment that took place between 2017 and 2019.
-# Ideally, we want to add a new variable in  our bluti4 database that accounts for this
-# For now we will simply store all this cases in a different variable to bear it in mind
-clutchswaps2 %>% 
-  count(year) %>%
-  filter(n > 1)  # Number of cases involved in clutch swipe experiment per year
-
 
 
 ### Exploring the dataset ###
@@ -220,7 +199,27 @@ blutidf <- bluti2 %>% select(ring, year, site, box, fed, cs, suc, hatchyear, age
 write.xlsx(blutidf, "data/blutidf.xlsx")  # final database
 
 
-### Excluding observations within clutch swaps ###
+### Excluding observations within clutch swaps experiment ###
+
+# Between 2017 and 2019, a clutch-swap experiment took place. The results of these experiments may have an influence on suc, and we should account for this.
+# First, we need to find how many and which cases in the bluti4 database were part of this experiment:
+swaps <- as_tibble(read.csv("data/clutchswaps.csv"))
+swaps
+# I will have to change the name of either "origin.nest" or "destination.nest" to "box" so that I can compare
+# Initially, which one I choose to change shouldn't matter as the experiment was an exchange.
+swaps <- swaps %>% rename(box = origin.nest)
+clutchswaps1 <- bluti1 %>% 
+  semi_join(swaps, by = c("year", "site", "box"))
+clutchswaps2 <- bluti2 %>% 
+  semi_join(swaps, by = c("year", "site", "box"))
+
+# According to this, 241 cases (or 240, when removing cases were suc < 0) out of a total of 1694 were involved in the clutch swap experiment that took place between 2017 and 2019.
+# Ideally, we want to add a new variable in  our bluti4 database that accounts for this
+# For now we will simply store all this cases in a different variable to bear it in mind
+clutchswaps2 %>% 
+  count(year) %>%
+  filter(n > 1)  # Number of cases involved in clutch swipe experiment per year
+
 
 
 ## The following code is not being used anymore ##

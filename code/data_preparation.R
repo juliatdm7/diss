@@ -177,13 +177,37 @@ age4 <- bluti2 %>% filter(age == 4)  # there are also 8 recordings of which age=
 bluti2_red <- bluti2 %>% anti_join(birds_at_only_6, by = "ring")  # smaller subdataset excluding birds first identified at age 6
 
 
+### Identifying ringed individuals that might have been ringed in the project sites ###
+
+nestlings <- as_tibble(read.csv("data/NestlingsII.csv"))
+nestlings <- nestlings %>%
+  select(ring, year, site, box) %>%
+  rename(ringedyear = year) %>%
+  arrange(ringedyear, site, box)
+
+bluti3 <- bluti2
+bluti3$ringedyear <- NA
+ring_nr <- 0
+for (i in 1:nrow(bluti3)) {
+  if (bluti3[i,"ring"] %in% nestlings$ring) {
+    ring_nr <- as.character(bluti3[i,"ring"])
+    row <- which(nestlings$ring == ring_nr)
+    bluti3[i,"ringedyear"] <- nestlings[row, "ringedyear"]
+  }
+}
+
 
 ### Trying to create age column that specifies age (in years old) of the bird at the recorded breeding attempt with Hannah's help ###
 
-inds <- data.frame(ring = sort(unique(bluti2$ring)), firstcaught = tapply(bluti2$year, bluti2$ring, min), firstageclass = tapply(bluti2$age, bluti2$ring, min))  # define a new dataframe with each unique female, the year she was first caught and the age she was 
-inds$hatchyear <- ifelse(inds$firstageclass==6, (inds$firstcaught - 2), (inds$firstcaught - 1))  # calculate an estimated hatch year based on the age class when first caught (assume age class 4 were yearlings) 
-bluti2$hatchyear <- inds$hatchyear[match(bluti2$ring, inds$ring)]  # match hatch year back to original dataframe
-bluti2$yo <- bluti2$year - bluti2$hatchyear  # calculate age
+indsx <- data.frame(ring = sort(unique(bluti3$ring)), firstcaught = tapply(bluti3$year, bluti3$ring, min), firstageclass = tapply(bluti3$age, bluti3$ring, min))  # define a new dataframe with each unique female, the year she was first caught and the age she was 
+indsx$hatchyear <- ifelse(indsx$firstageclass==6, (indsx$firstcaught - 2), (indsx$firstcaught - 1))  # calculate an estimated hatch year based on the age class when first caught (assume age class 4 were yearlings) 
+bluti3$hatchyear <- indsx$hatchyear[match(bluti3$ring, indsx$ring)]  # match hatch year back to original dataframe
+for (i in 1:nrow(bluti3)) {
+  if (!is.na(bluti3[i,"ringedyear"])) {
+    bluti3[i, "hatchyear"] <- bluti3[i, "ringedyear"]
+  }
+}
+bluti3$yo <- bluti3$year - bluti3$hatchyear  # calculate age
 
 
 ### Trying to create a "age at last breeding attempt" column ###
@@ -229,6 +253,8 @@ for (i in 1:nrow(blutidf)) {
     blutidf[i,"suc"] <- NA
   }  
 }
+
+
 
 
 

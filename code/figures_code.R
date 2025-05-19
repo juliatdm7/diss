@@ -3,41 +3,108 @@
 ########################
 
 library(ggplot2)
+blutidf <- read.csv("data/blutidf.csv")
+blutidf_3yo <- read.csv("data/blutidf_3yo.csv")
 
-
-x <- c(1:7)  # Number of breeding attempts
-y <- c(811, 192, 78, 36, 16, 0, 1)  # I need to change this so that it directly references the database
-brattempts_age <- data.frame(x, y)
-
-# Number of females for which we have re
-plot(brattempts_age, type = "b", xlab="Number of breeding attempts recorded", ylab="Number of females")
-ggplot(data=brattempts_age, aes(x=x, y=y)) +
-  geom_point(size = 2) +
-  geom_line(colour="#248fc9") +
+### Number of breeding attempts per female ###
+unique_birds <- blutidf %>%
+  count(ring)  # unique birds
+ggplot(data=unique_birds, aes(n)) +
+  geom_freqpoly(colour="black", binwidth=1, linejoin = "round") +
+  geom_point(stat="bin", aes(y=..count..), binwidth=1, colour="#248fc9", size = 2) +  # I would like to add a label with the frequencies
   theme_bw() +
+  scale_x_continuous(breaks=seq(1,7,1), limits = c(1,7)) +
+  labs(x = "Number of breeding attempts", y = "Number of females", main = "Number of breeding events attempted by female blue tits") +
   theme( axis.title = element_text(size = 13), 
          axis.text = element_text(size = 11),
          axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
-         axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
-  labs(x="Number of breeding attempts", y="Number of distinct females") +
-  scale_x_continuous(breaks=seq(1,7,1)) +
-  theme(axis.title = element_text(size = 14), axis.text = element_text(size = 12))
+         axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
   
 
 bluti2$suc <- as.numeric(bluti2$suc)
 
 ### Distribution of the breeding trait variables ###
 
-# Fledgeling success
-ggplot(bluti2, aes(suc)) +
+# Overall fledgeling success #
+ggplot(blutidf, aes(suc)) +
   geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
   labs(x = "Number of chicks fledged successfully", y = "Frequency") +
   theme_bw() +
   scale_x_continuous(breaks=seq(0,13,1)) +
   theme(axis.title = element_text(size = 14), axis.text = element_text(size = 12))
 
-# Distribution of clutch size per year
-ggplot(bluti2, aes(x=year, y=suc)) +
+# Overall fledgeling success (up until 3 y.o.)#
+ggplot(blutidf_3yo, aes(suc)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
+  labs(x = "Number of chicks fledged successfully", y = "Frequency") +
+  theme_bw() +
+  scale_x_continuous(breaks=seq(0,13,1)) +
+  theme(axis.title = element_text(size = 14), axis.text = element_text(size = 12))
+
+# Fledgeling success by age (up until 3 y.o.) #
+ggplot(blutidf_3yo, aes(suc)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
+  labs(x = "Number of chicks fledged successfully", y = "Frequency") +
+  theme_bw() +
+  facet_wrap(~ yo) +
+  scale_x_continuous(breaks=seq(0,13,1)) +
+  theme(axis.title = element_text(size = 14), axis.text = element_text(size = 12)) 
+  
+# Overall clutch size # 
+ggplot(blutidf, aes(cs)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
+  labs(x = "Clutch size", y = "Frequency") +
+  theme_bw() +
+  scale_x_continuous(breaks=seq(0,15,1)) +
+  theme(axis.title = element_text(size = 14), axis.text = element_text(size = 12))
+
+# Overall clutch size (up until 3 y.o.) # 
+ggplot(blutidf_3yo, aes(cs)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
+  labs(x = "Clutch size", y = "Frequency") +
+  theme_bw() +
+  scale_x_continuous(breaks=seq(0,15,1)) +
+  theme(axis.title = element_text(size = 14), axis.text = element_text(size = 12))
+
+# Clutch size by age(up until 3 y.o.) # 
+ggplot(blutidf_3yo, aes(cs)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
+  labs(x = "Clutch size", y = "Frequency") +
+  theme_bw() +
+  facet_wrap(~ yo) +
+  scale_x_continuous(breaks=seq(0,15,1)) +
+  theme(axis.title = element_text(size = 14), axis.text = element_text(size = 12))
+
+# Overall first egg lay date # 
+ggplot(blutidf, aes(fed)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
+  labs(x = "First egg lay date (1st Jan = 1)", y = "Frequency") +
+  theme_bw() +
+  scale_x_continuous(breaks=seq(90,200,5)) +
+  theme(axis.title = element_text(size = 14), axis.text = element_text(size = 12))
+
+# Overall first egg lay date (up until 3 y.o.) # 
+ggplot(blutidf_3yo, aes(fed)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
+  labs(x = "First egg lay date (1st Jan = 1)", y = "Frequency") +
+  theme_bw() +
+  scale_x_continuous(breaks=seq(90,200,5)) +
+  theme(axis.title = element_text(size = 14), axis.text = element_text(size = 12))
+
+# First egg lay date by age(up until 3 y.o.) # 
+ggplot(blutidf_3yo, aes(fed)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
+  labs(x = "First egg lay date (1st Jan = 1)", y = "Frequency") +
+  theme_bw() +
+  facet_wrap(~ yo) +
+  scale_x_continuous(breaks=seq(90,200,5)) +
+  theme(axis.title = element_text(size = 14), axis.text = element_text(size = 12))
+
+
+### Breeding traits per year (raw data) ###
+
+# Suc per year
+ggplot(blutidf_3yo, aes(x=year, y=suc)) +
   geom_point(size=2) +
   labs(x = "Years", y = "Mean number of chicks fledged successfully") +
   theme_bw() +
@@ -49,15 +116,7 @@ ggplot(bluti2, aes(x=year, y=suc)) +
         axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
 
 
-# Lay date of first egg
-ggplot(bluti2, aes(fed)) +
-  geom_histogram(colour = "black", fill = "#59B7EB", binwidth=1) +
-  labs(x = "Lay date of first egg (1 = Jan 1st)", y = "Frequency") +
-  theme_bw() +
-  scale_x_continuous(breaks=seq(100,150,5)) +
-  theme(axis.title = element_text(size = 14), axis.text = element_text(size = 12))
-
-# Distribution of first egg lay date per year
+# Fed per year
 ggplot(bluti2, aes(x=year, y=fed)) +
   geom_point(size=2) +
   labs(x = "Years", y = "Mean number of chicks fledged successfully") +
@@ -68,15 +127,7 @@ ggplot(bluti2, aes(x=year, y=fed)) +
         axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
         axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
 
-# Clutch size
-ggplot(bluti2, aes(cs)) +
-  geom_histogram(colour = "black", fill = "#A2DEFF", binwidth=1) +
-  labs(x = "Clutch size", y = "Frequency") +
-  theme_bw() +
-  scale_x_continuous(breaks=seq(0,23,2)) +
-  theme(axis.title = element_text(size = 14), axis.text = element_text(size = 12))
-
-# Distribution of clutch size per year
+# Cs per year
 ggplot(bluti2, aes(x=year, y=cs)) +
   geom_point(size=2) +
   labs(x = "Years", y = "Clutch size") +
@@ -86,6 +137,75 @@ ggplot(bluti2, aes(x=year, y=cs)) +
         axis.text = element_text(size = 12),
         axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
         axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+### Raw data per age group ###
+
+# Now, I'll create new dataframes that will include the mean values for each breeding trait for each age group (years old) and their corresponding standard deviation
+# I will overlap this metrics to a raw data layer with a bit of noise added using geom_jitter()
+
+## For fledgeling success
+bluti_suc_summary <- blutidf_3yo %>%
+  group_by(yo) %>%
+  na.omit(bluti_suc_summary) %>%
+  summarise_at(vars(suc), list(mean=mean, sd=sd)) %>% 
+  as.data.frame()
+## For lay date of first egg
+bluti_fed_summary <- blutidf_3yo %>%
+  group_by(yo) %>%
+  na.omit(bluti_fed_summary) %>%
+  summarise_at(vars(fed), list(mean=mean, sd=sd)) %>% 
+  as.data.frame()
+## For clutch size
+bluti_cs_summary <- blutidf_3yo %>%
+  group_by(yo) %>%
+  na.omit(bluti_cs_summary) %>%
+  summarise_at(vars(cs), list(mean=mean, sd=sd)) %>% 
+  as.data.frame()
+
+# Suc per age (noisy raw data plus mean+sd)
+ggplot() +
+  geom_jitter(data=blutidf_3yo, aes(x=yo, y=suc), size=2, alpha=0.25, colour = "#248fc9") +
+  geom_errorbar(data=bluti_suc_summary, aes(x=yo, y=mean, ymin=mean-sd, ymax=mean+sd)) +
+  geom_point(data=bluti_suc_summary, aes(x=yo, y=mean), colour = "black", size = 3) +
+  labs(x = "Bird age", y = "Number of chicks successfully fledged", title = "Number of chicks successfully fledged raw data and mean+sd") +
+  theme_bw() +
+  scale_x_continuous(breaks=seq(1,3,1)) +
+  scale_y_continuous(breaks=seq(1,15,1)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+ggsave("figures/rawdata_suc_ggplotI.png")
+
+# Fed per age (noisy raw data plus mean+sd)
+ggplot() +
+  geom_jitter(data=blutidf_3yo, aes(x=yo, y=fed), size=2, alpha=0.25, colour = "#248fc9") +
+  geom_errorbar(data=bluti_fed_summary, aes(x=yo, y=mean, ymin=mean-sd, ymax=mean+sd)) +
+  geom_point(data=bluti_fed_summary, aes(x=yo, y=mean), colour = "black", size = 3) +
+  labs(x = "Bird age", y = "First egg lay date (1st Jan = 1)", title = "First egg lay date raw data and mean+sd") +
+  theme_bw() +
+  scale_x_continuous(breaks=seq(1,3,1)) +
+  scale_y_continuous(breaks=seq(90,200,5)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+ggsave("figures/rawdata_fed_ggplotI.png")
+
+# Cs per age (noisy raw data plus mean+sd)
+ggplot() +
+  geom_jitter(data=blutidf_3yo, aes(x=yo, y=cs), size=2, alpha=0.25, colour = "#248fc9") +
+  geom_errorbar(data=bluti_cs_summary, aes(x=yo, y=mean, ymin=mean-sd, ymax=mean+sd)) +
+  geom_point(data=bluti_cs_summary, aes(x=yo, y=mean), colour = "black", size = 3) +
+  labs(x = "Bird age", y = "Clutch size", title = "Clutch size raw data and mean+sd") +
+  theme_bw() +
+  scale_x_continuous(breaks=seq(1,3,1)) +
+  scale_y_continuous(breaks=seq(1,15,2)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+ggsave("figures/rawdata_cs_ggplotI.png")
 
 ### Age-specific patterns of breeding traits ###
 
@@ -114,26 +234,6 @@ ggplot(bluti2, aes(x=yo, y=cs, group=yo)) +
   scale_x_continuous(breaks=seq(1,7,1)) +
   scale_y_continuous(breaks=seq(0,14,1))
 
-# Now, I'll create new dataframes that will include the mean values for each breeding trait for each age group (years old) and their corresponding standard deviation
-
-## For fledgeling success
-bluti2_suc_summary <- bluti2 %>%
-  group_by(yo) %>%
-  na.omit(bluti2_fed_summary) %>%
-  summarise_at(vars(suc), list(mean=mean, sd=sd)) %>% 
-  as.data.frame()
-## For lay date of first egg
-bluti2_fed_summary <- bluti2 %>%
-  group_by(yo) %>%
-  na.omit(bluti2_fed_summary) %>%
-  summarise_at(vars(fed), list(mean=mean, sd=sd)) %>% 
-  as.data.frame()
-## For clutch size
-bluti2_cs_summary <- bluti2 %>%
-  group_by(yo) %>%
-  na.omit(bluti2_cs_summary) %>%
-  summarise_at(vars(cs), list(mean=mean, sd=sd)) %>% 
-  as.data.frame()
 
 # I'll do the same, but with the reduced subdataset (excluding birds identified only at 6 years old)
 

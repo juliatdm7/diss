@@ -70,40 +70,13 @@ no_adult_data <- uqblutiphen %>%
   anti_join(uqblutiadults, by = c("year", "site", "box"))  # there are 395 rows in  blutiphen for which we do not have data in blutiadults
 # We store these problematic cases in their separate rows in case we want to reach for them in the future
 
-
-# Ignore what's in between rows of ###:
-
-################################################################################################################################################################################################################################################
-################################################################################################################################################################################################################################################
-## I want to keep all the rows in blutiphen even if there is no corresponding data for it in blutiadults, but I don't really care about data in bluetiadults for which I have no data in blutiphen, as I won't be able to use it in the models.
-## Therefore, I'll filter blutiadults according to columns "year", "site" and "box" in blutiphen to keep those with their corresponding matching and I will collate that selection with blutiphen subdatabase:
-##filt_blutiadults <- blutiadults %>% 
-##  semi_join(blutiphen, by = c("year", "site", "box")) # 1689 cases for which there is a corresponding case in blutiphen
-##bluti1 <- filt_blutiadults %>%
-##  right_join(blutiphen, by = c("year", "site", "box")) # 2089 cases for which there is either info on both blutiadults database and blutiphen database or only on blutiphen database
-
-##bluti2 <- blutiadults %>%
-##  full_join(blutiphen, by = c("year", "site", "box"))
-##bluti3 <- blutiphen %>%
-##  full_join(blutiadults, by = c("year", "site", "box"))
-##bluti4 <- blutiphen %>%
-##  right_join(blutiadults, by = c("year", "site", "box"))
-##bluti5 <- blutiphen %>%
-## left_join(blutiadults, by = c("year", "site", "box"))
-# Above there are some other options that I have rejected either because they don't keep the information that I'm interested in.
-
-##bluti1 <- bluti1 %>% arrange(year, site, box)   # Let's rearrange the dataset again for better clarity when reading it
-##head(bluti1)
-################################################################################################################################################################################################################################################
-################################################################################################################################################################################################################################################
-
-
 # For now, I will only include in the database the shared cases between blutiphen and blutiadults because lack of data of either of them is problematic
 bluti1 <- uqblutiphen %>%
   inner_join(uqblutiadults, by =c("year", "site", "box"))  # warning: many-to-many relationships due to duplicates in both blutiphen and blutiadults databases. For now, we will just keep duplicate rows, but we might have to delete them (especially the duplicates in blutiadults)
-# once we remove the duplicates, the warning of many-to-many is gone
+# Once we remove the duplicates, the warning of many-to-many is gone
 # There are some cases for which breeding success is -999. I don't exactly know what that means, but I will create a new bluti2 variable in which I don't include those cases
 bluti2 <- bluti1[-which(bluti1$suc < 0),]
+bluti2 <- bluti2[-which(bluti2$cs > 14),]  # where do we make the cut? Ask Ally what would make more sense
 bluti2 <- bluti2 %>% relocate(ring, year, site, box, age, fed, cs, suc)
 bluti2 <- bluti2 %>% arrange(year, site, box)
 
@@ -126,33 +99,11 @@ nr_birds2 %>% summarise(n = mean(n))  # On average, we have recorded 1.46 breedi
 max(nr_birds2[, 2])  # the maximum number of breeding attempts recorded for the same female is 7...
 nr_birds2[which(nr_birds2$n == max(nr_birds2[, 2])),"ring"]  # ...and it's of female S921907
 
-attempt1 <- nr_birds2 %>% filter(n == 1)  # 811 females for which we have only 1 breeding attempt recorded
-attempt2 <- nr_birds2 %>% filter(n == 2)  # 192 females for which we have 2 breeding attempts recorded
-attempt3 <- nr_birds2 %>% filter(n == 3)  # 78 females for which we have 3 breeding attempts recorded
-attempt4 <- nr_birds2 %>% filter(n == 4)  # 36 females for which we have 4 breeding attempts recorded
-attempt5 <- nr_birds2 %>% filter(n == 5)  # 16 females for which we have 5 breeding attempts recorded
-attempt6 <- nr_birds2 %>% filter(n == 6)  # 0 females for which we have 6 breeding attempts recorded
-attempt7 <- nr_birds2 %>% filter(n == 7)  # 1 females for which we have 7 breeding attempts recorded
-
-#bluti1$YEAR <- as.factor(bluti1$year)
-#bluti1$site <- as.factor(bluti1$site)
 str(bluti2)
 bluti2$suc <- as.numeric(bluti2$suc)
 hist(bluti2$suc, xlab = "Number of chicks successfully fledged")
-
 bluti2 %>% summarise(suc = mean(suc))  # average number of successfully fledged chicks
 
-bluti2 %>% 
-  group_by(ring) %>%
-  count(age) %>%
-  filter(age == 6)
-ages <- bluti2 %>% 
-  group_by(ring) %>%
-  count(age) 
-age6 <- bluti2 %>% 
-  group_by(ring) %>%
-  count(age) %>%
-  filter(age == 6)
 
 ### Filtering the number of females at age 6 that were also recorded at age 5 (and therefore, we definitely know their age) ###
 # Find individuals recorded at age 5 (code is modified from code provided by ChatGPT)
@@ -171,10 +122,12 @@ birds_at_only_6 <- bluti2 %>%
   filter(age == 6) %>%
   anti_join(birds_at_5, by = "ring") %>%
   count(ring)   
+
+#bluti2_red <- bluti2 %>% anti_join(birds_at_only_6, by = "ring")  # smaller subdataset excluding birds first identified at age 6
+
 # There are 410 females of which we have recordings only when they're age 6 and not before; these could be problematic to include in the model
 age4 <- bluti2 %>% filter(age == 4)  # there are also 8 recordings of which age=4 (most likely age identification on the field was not possible)
 
-bluti2_red <- bluti2 %>% anti_join(birds_at_only_6, by = "ring")  # smaller subdataset excluding birds first identified at age 6
 
 
 ### Identifying ringed individuals that might have been ringed in the project sites ###
@@ -258,7 +211,7 @@ for (i in 1:nrow(blutidf)) {
 ### Creating a database for recordings of females that are only between 1 and 3 years old
 
 blutidf_3yo <- blutidf[which(blutidf$yo <= 3),]
-count(distinct(blutidf_3yo, ring, .keep_all = T))  # 1133 females instead of 1134. 
+count(distinct(blutidf_3yo, ring, .keep_all = T))  # 1131 females instead of 1132. 
 
 
 write.xlsx(blutidf, "data/blutidf.xlsx")  # final database

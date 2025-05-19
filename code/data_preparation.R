@@ -212,15 +212,16 @@ bluti3$yo <- bluti3$year - bluti3$hatchyear  # calculate age
 
 ### Trying to create a "age at last breeding attempt" column ###
 
-w <- tapply(bluti2$yo, bluti2$ring, max)
+w <- tapply(bluti3$yo, bluti3$ring, max)
 w <- as.data.frame(w)
 w$rings <- rownames(w)
-bluti2$w <- w$w[match(bluti2$ring, w$rings)]
+bluti3$w <- w$w[match(bluti3$ring, w$rings)]
 
+### Re-organising dataset ###
 
-blutidf <- bluti2 %>% select(ring, year, site, box, fed, cs, suc, hatchyear, age, yo, w)  # re-organising dataset) 
-
-write.xlsx(blutidf, "data/blutidf.xlsx")  # final database
+blutidf <- bluti3 %>% 
+  select(ring, year, site, box, fed, cs, suc, hatchyear, age, yo, w) %>%
+  arrange(year, site, box)
 
 
 ### Excluding observations within clutch swaps experiment ###
@@ -254,10 +255,17 @@ for (i in 1:nrow(blutidf)) {
   }  
 }
 
+### Creating a database for recordings of females that are only between 1 and 3 years old
+
+blutidf_3yo <- blutidf[which(blutidf$yo <= 3),]
+count(distinct(blutidf_3yo, ring, .keep_all = T))  # 1133 females instead of 1134. 
 
 
+write.xlsx(blutidf, "data/blutidf.xlsx")  # final database
+write.csv(blutidf, "data/blutidf.csv")
 
-
+write.xlsx(blutidf_3yo, "data/blutidf_3yo.xlsx")  # final database (with observations where females are only up to 3 years old)
+write.csv(blutidf_3yo, "data/blutidf_3yo.csv")
 
 
 ## The following code is not being used anymore ##

@@ -22,8 +22,6 @@ lm3 <- lm(fed ~ yo, data = blutidf_3yo)
 summary(lm3)
 anova(lm3)
 
-pt(2.488, df=)
-
 glmm1 <- lmer(cs ~ yo + w + (1|year) + (1|site) + (1|ring), data = blutidf_3yo)
 summary(glmm1)
 2 * (1 - pnorm(abs(coef(summary(glmm1))["yo", "t value"])))  # p-val = 0.005143159 assuming a N distribution. Does this mean that clutch size increases by ~0.18 on average per year that the birds grow?
@@ -43,6 +41,4 @@ summary(glmm3)
 2 * (1 - pnorm(abs(coef(summary(glmm3))["yo", "t value"])))  # p-val = 0.000296272 assuming a N distribution. 
 2 * (1 - pnorm(abs(coef(summary(glmm3))["w", "t value"])))  # p-val = 0.7022408 assuming a N distribution. 
 
-plot(blutidf_3yo$cs ~ blutidf_3yo$yo)
-abline(lm1)
           

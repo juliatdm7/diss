@@ -208,6 +208,7 @@ for (i in 1:nrow(blutidf)) {
   }  
 }
 
+
 ### Creating a database for recordings of females that are only between 1 and 3 years old
 
 blutidf_3yo <- blutidf[which(blutidf$yo <= 3),]

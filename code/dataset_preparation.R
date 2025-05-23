@@ -215,10 +215,9 @@ blutidf_3yo <- blutidf[which(blutidf$yo <= 3),]
 count(distinct(blutidf_3yo, ring, .keep_all = T))  # 1131 females instead of 1132. 
 
 
-write.xlsx(blutidf, "data/blutidf.xlsx")  # final database
-write.csv(blutidf, "data/blutidf.csv")
+#write.csv(blutidf, "data/blutidf.csv")
+#write.xlsx(blutidf, "data/blutidf.xlsx") 
 
-write.xlsx(blutidf_3yo, "data/blutidf_3yo.xlsx")  # final database (with observations where females are only up to 3 years old)
-write.csv(blutidf_3yo, "data/blutidf_3yo.csv")
-
+#write.csv(blutidf_3yo, "data/blutidf_3yo.csv")
+#write.xlsx(blutidf_3yo, "data/blutidf_3yo.xlsx")  # final database (with observations where females are only up to 3 years old)
 

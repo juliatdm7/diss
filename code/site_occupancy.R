@@ -1596,6 +1596,12 @@ DOR_nb$occupancy <- DOR_nb$occ_nb/DOR_nb$all_nb
 
 av_occupancy[which(av_occupancy$site == "DOR"),"occupancy"] <- mean(na.omit(DOR_nb$occupancy))
 
-habitat_foliage_sores <- read.csv("data/Habitat_SiteII.csv")
 
-write.csv(av_occupancy,"data/site_occupancy.csv")
+#write.csv(av_occupancy,"data/site_occupancy.csv")
+
+site_occupancy <- read.csv("data/site_occupancy.csv")
+blutidf <- read.csv("data/blutidf.csv")
+blutidf_3yo <- read.csv("data/blutidf_3yo.csv")
+blutidf$site_occ <- site_occupancy$occupancy[match(blutidf$site, site_elevation$site)] 
+blutidf_3yo$site_occ <- site_occupancy$occupancy[match(blutidf_3yo$site, site_elevation$site)] 
+

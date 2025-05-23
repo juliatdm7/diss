@@ -2,19 +2,68 @@
 ### PROOF OF CONCEPT ###
 ########################
 
+library(dplyr)
 library(ggplot2)
+library(gridExtra)
 blutidf <- read.csv("data/blutidf.csv")
 blutidf_3yo <- read.csv("data/blutidf_3yo.csv")
+
+
+#### Visualisation of sample sizes and cases ####
+
+
 
 ### Number of breeding attempts per female ###
 unique_birds <- blutidf %>%
   count(ring)  # unique birds
-ggplot(data=unique_birds, aes(n)) +
-  geom_freqpoly(colour="black", binwidth=1, linejoin = "round") +
-  geom_point(stat="bin", aes(y=..count..), binwidth=1, colour="#248fc9", size = 2) +  # I would like to add a label with the frequencies
+ggplot(unique_birds, aes(n)) +
+  geom_freqpoly(colour="#248fc9", binwidth=1, linejoin = "round") +
+  geom_point(stat="bin", aes(y=after_stat(count)), binwidth=1, colour="black", size = 2) +  # I would like to add a label with the frequencies
   theme_bw() +
   scale_x_continuous(breaks=seq(1,7,1), limits = c(1,7)) +
-  labs(x = "Number of breeding attempts", y = "Number of females", main = "Number of breeding events attempted by female blue tits") +
+  labs(x = "Number of breeding attempts", y = "Number of females", title = "Number of breeding events attempted by female blue tits") +
+  theme( axis.title = element_text(size = 13), 
+         axis.text = element_text(size = 11),
+         axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+         axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+### Number of recorded breeding attempts per age group ###
+# Histogram
+ggplot(blutidf, aes(x=yo)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) + 
+  theme_bw() +
+  scale_x_continuous(breaks=seq(1,7,1)) +
+  labs(x = "Age", y = "Number of females", title = "Overall number of female recordings per age group") +
+  theme( axis.title = element_text(size = 13), 
+         axis.text = element_text(size = 11),
+         axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+         axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+# Labeled line with points
+birds_per_age <- blutidf %>% count(yo)
+ggplot(blutidf, aes(x=yo)) +
+  geom_freqpoly(colour="#248fc9", binwidth=1, linejoin = "round") +
+  geom_point(stat="bin", aes(y=after_stat(count)), binwidth=1, colour="black", size = 2) +  # I would like to add a label with the frequencies
+  geom_label(stat="count", label = birds_per_age$n, vjust=-0.5) + 
+  theme_bw() +
+  scale_x_continuous(breaks=seq(1,7,1), limits=c(1,7)) +
+  scale_y_continuous(limits=c(0,820)) +
+  labs(x = "Age", y = "Number of females", title = "Overall number of female recordings per age group") +
+  theme( axis.title = element_text(size = 13), 
+         axis.text = element_text(size = 11),
+         axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+         axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+## Estimated age at last reproductive event of each female ##
+birds_longev <- w %>% count(w)
+ggplot(w, aes(x=w)) +
+  geom_freqpoly(colour="#248fc9", binwidth=1, linejoin = "round") +
+  geom_point(stat="bin", aes(y=after_stat(count)), binwidth=1, colour="black", size = 2) +  # I would like to add a label with the frequencies
+  geom_label(stat="count", label = birds_longev$n, vjust=-0.5) + 
+  theme_bw() +
+  scale_x_continuous(breaks=seq(1,7,1), limits=c(1,7)) +
+  scale_y_continuous(limits=c(0,650)) +
+  labs(x = "Age at last recorded reproductive event", y = "Number of females", title = "What is the longevity estimated per female?") +
   theme( axis.title = element_text(size = 13), 
          axis.text = element_text(size = 11),
          axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
@@ -163,7 +212,9 @@ bluti_cs_summary <- blutidf_3yo %>%
   as.data.frame()
 
 # Suc per age (noisy raw data plus mean+sd)
-ggplot() +
+
+grid.arrange(plot1, plot2, ..., ncol=3, nrow = 3)
+plot1 <- ggplot() +
   geom_jitter(data=blutidf_3yo, aes(x=yo, y=suc), size=2, alpha=0.25, colour = "#248fc9") +
   geom_errorbar(data=bluti_suc_summary, aes(x=yo, y=mean, ymin=mean-sd, ymax=mean+sd)) +
   geom_point(data=bluti_suc_summary, aes(x=yo, y=mean), colour = "black", size = 3) +
@@ -175,10 +226,10 @@ ggplot() +
         axis.text = element_text(size = 12),
         axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
         axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
-ggsave("figures/rawdata_suc_ggplotI.png")
+#ggsave("figures/rawdata_suc_ggplotI.png")
 
 # Fed per age (noisy raw data plus mean+sd)
-ggplot() +
+plot2 <- ggplot() +
   geom_jitter(data=blutidf_3yo, aes(x=yo, y=fed), size=2, alpha=0.25, colour = "#248fc9") +
   geom_errorbar(data=bluti_fed_summary, aes(x=yo, y=mean, ymin=mean-sd, ymax=mean+sd)) +
   geom_point(data=bluti_fed_summary, aes(x=yo, y=mean), colour = "black", size = 3) +
@@ -190,10 +241,10 @@ ggplot() +
         axis.text = element_text(size = 12),
         axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
         axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
-ggsave("figures/rawdata_fed_ggplotI.png")
+#ggsave("figures/rawdata_fed_ggplotI.png")
 
 # Cs per age (noisy raw data plus mean+sd)
-ggplot() +
+plot3 <- ggplot() +
   geom_jitter(data=blutidf_3yo, aes(x=yo, y=cs), size=2, alpha=0.25, colour = "#248fc9") +
   geom_errorbar(data=bluti_cs_summary, aes(x=yo, y=mean, ymin=mean-sd, ymax=mean+sd)) +
   geom_point(data=bluti_cs_summary, aes(x=yo, y=mean), colour = "black", size = 3) +
@@ -205,7 +256,9 @@ ggplot() +
         axis.text = element_text(size = 12),
         axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
         axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
-ggsave("figures/rawdata_cs_ggplotI.png")
+#ggsave("figures/rawdata_cs_ggplotI.png")
+
+grid.arrange(plot1, plot2, plot3, ncol=3, nrow = 1)
 
 ### Age-specific patterns of breeding traits ###
 
@@ -395,7 +448,7 @@ ggplot(bluti2_red_cs_summary, aes(x=y_old, y=mean)) +
 
 # Distinct rings:
 bluti2_distinctring <- bluti2 %>% 
-  distinct(ring, .keep_all = T) 
+  distinct(ring, .keep_all = T)  # I don't think this makes much sense to plot as females can move between sites from one year to the next one and this could would obscure that
 
 # Distinct birds across sites
 ggplot(bluti2_distinctring,aes(x=site, fill=site)) +
@@ -411,7 +464,7 @@ ggplot(bluti2_distinctring,aes(x=site, fill=site)) +
   scale_y_continuous(breaks=seq(0,60,5), expand=expansion(mult=c(0,0.1))) 
 
 # RECORDINGS (not distinct birds) per site and classifying by age (in years old). Complete dataset.
-ggplot(bluti2,aes(x=site, fill=factor(y_old))) +
+ggplot(blutidf,aes(x=site, fill=factor(yo))) +
   geom_bar() +
   theme_bw() +
   guides(fill=guide_legend(title="Age in years old")) +

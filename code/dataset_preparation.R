@@ -26,8 +26,9 @@ adults <- alladults %>% filter(season != "winter", sex == "F")  # we will remove
 blutiadults <- adults %>% select(ring, year, site, box, age)  # finally, we select the columns that we will use
 
 # Rearranging datasets in ascending order of years, site and nestboxes
-blutiphen <- blutiphen %>% arrange(year, site, box)  
-blutiadults <- blutiadults %>% arrange(year, site, box)  
+level_order <- c("EDI", "RSY", "FOF", "BAD", "LVN", "DOW", "GLF", "SER", "MCH", "PTH", "STY", "BIR", "DUN", "BLG", "PIT", "KCK", "KCZ", "BLA", "CAL", "DNM", "DNC", "DNS", "DLW", "CRU", "NEW", "HWP", "INS", "FSH", "RTH", "AVI", "AVN", "SLS", "TOM", "DAV", "ART", "MUN", "FOU", "ALN", "DEL", "TAI", "SPD", "OSP", "DOR") 
+blutiphen <- blutiphen %>% arrange(year, factor(site, levels = level_order), box)  
+blutiadults <- blutiadults %>% arrange(year, factor(site, levels = level_order), box)  
 
 
 
@@ -56,10 +57,10 @@ blutiadults %>%
 # However, for blutiphen I am interested in storing the re-lays rather than the failed breeding attempts (ask Hannah confirmation about this).
 # I'm gonna try to rearrange my dataset so that relays appear before failed attempts as the unique() function in dplyr will keep the first row it encounters.
 
-blutiphen <- blutiphen %>% arrange(year, site, box, desc(suc))  # now, the first row in the duplicates should be the failed attempt
-uqblutiphen <- distinct(blutiphen, year, site, box, .keep_all = T) 
+blutiphen <- blutiphen %>% arrange(year, factor(site, levels = level_order), box, desc(suc))  # now, the first row in the duplicates should be the failed attempt
+uqblutiphen <- distinct(blutiphen, year, factor(site, levels = level_order), box, .keep_all = T) 
 
-uqblutiadults <- distinct(blutiadults, ring, year, site, box, .keep_all = T)
+uqblutiadults <- distinct(blutiadults, ring, year, factor(site, levels = level_order), box, .keep_all = T)
 
 # Now, I expect that phenological data will not be available for all individuals in blutiadults database, so I want to know how many cases (rows) in blutiphen lack their corresponding case in blutiadults:
 # I will use the function anti_join() to find it out:
@@ -174,7 +175,7 @@ bluti3$w <- w$w[match(bluti3$ring, w$rings)]
 
 blutidf <- bluti3 %>% 
   select(ring, year, site, box, fed, cs, suc, hatchyear, age, yo, w) %>%
-  arrange(year, site, box)
+  arrange(year, factor(site, levels = level_order), box)
 
 
 ### Excluding observations within clutch swaps experiment ###

@@ -1628,4 +1628,37 @@ blutidf_3yo$site_occ <- site_occupancy$occupancy[match(blutidf_3yo$site, site_el
 
 ### Calculating average nest box occupancy per site using solely Bird_Phenology.csv ###
 
+allbirdphen <- read.csv("data/Bird_PhenologyII.csv")
+birdphen <- allbirdphen[-which(allbirdphen$X2brood.relay == 1),]  # removing relays because they would artificially increase the number of nest boxes
 
+birdphen_EDI <- birdphen %>% filter(site == "EDI")
+
+# EDI
+
+occ_EDI <- data.frame(site = "EDI", year = 2014:2024, total_boxes = 0, occ_boxes = 0)
+
+for (i in 1:nrow(birdphen_EDI)) {
+  for (a in 1:nrow(occ_EDI)) {
+    if (occ_EDI[a,"year"] == birdphen_EDI[i, "year"]) {
+      occ_EDI[a, "total_boxes"] <- occ_EDI[a, "total_boxes"] + 1
+    }
+  }
+}  # estimating the number of boxes present at a site by counting the numbers of rows per site per year (rows are included in the dataset for a nest box even if it has stayed empty throughout the whole season)
+
+for (i in 1:nrow(birdphen_EDI)) {
+  for (a in 1:nrow(occ_EDI)) {
+    if (occ_EDI[a,"year"] == birdphen_EDI[i, "year"]) {
+      if ((!is.na(birdphen_EDI[i,"fki"])) & (birdphen_EDI[i, "species"] == "bluti")) {
+            occ_EDI[a, "occ_boxes"] <- occ_EDI[a, "occ_boxes"] + 1
+        }
+      }
+    }
+  } # estimating the number of occupied nest boxes using first known incubation (we only consider a nest box is occupied, in terms of a bird has deemed that nest box as good enough to have a brood in it, once the female starts incubating the eggs)
+
+occ_EDI[which(occ_EDI$total_boxes == 0),"occ_boxes"] <- NA
+
+occ_EDI$occupancy <- occ_EDI$occ_boxes/occ_EDI$total_boxes
+
+environment[which(environment$sites=="EDI"),"new_site_occ"] <- mean(na.omit(occ_EDI$occupancy))
+
+# Now I'll repeat this for all sites

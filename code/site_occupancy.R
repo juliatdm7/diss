@@ -1631,9 +1631,9 @@ blutidf_3yo$site_occ <- site_occupancy$occupancy[match(blutidf_3yo$site, site_el
 allbirdphen <- read.csv("data/Bird_PhenologyII.csv")
 birdphen <- allbirdphen[-which(allbirdphen$X2brood.relay == 1),]  # removing relays because they would artificially increase the number of nest boxes
 
-birdphen_EDI <- birdphen %>% filter(site == "EDI")
-
 # EDI
+
+birdphen_EDI <- birdphen %>% filter(site == "EDI")
 
 occ_EDI <- data.frame(site = "EDI", year = 2014:2024, total_boxes = 0, occ_boxes = 0)
 
@@ -1662,3 +1662,123 @@ occ_EDI$occupancy <- occ_EDI$occ_boxes/occ_EDI$total_boxes
 environment[which(environment$sites=="EDI"),"new_site_occ"] <- mean(na.omit(occ_EDI$occupancy))
 
 # Now I'll repeat this for all sites
+
+
+
+occupancy <- data.frame(site = rep(c("EDI", "RSY", "FOF", "BAD", "LVN", "DOW", "GLF", "SER", "MCH", "PTH", "STY", "BIR", "DUN", "BLG", "PIT", "KCK", "KCZ", "BLA", "CAL", "DNM", "DNC", "DNS", "DLW", "CRU", "NEW", "HWP", "INS", "FSH", "RTH", "AVI", "AVN", "CAR", "SLS", "TOM", "DAV", "ART", "MUN", "FOU", "ALN", "DEL", "TAI", "SPD", "OSP", "DOR"), each = 11), year = rep(2014:2024, 44), total_boxes = 0, occ_boxes = 0)
+
+for (i in 1:nrow(birdphen)) {
+  for (a in 1:nrow(occupancy)) {
+    if ((occupancy[a,"site"] == birdphen[i, "site"]) & (occupancy[a,"year"] == birdphen[i, "year"])) {
+      occupancy[a, "total_boxes"] <- occupancy[a, "total_boxes"] + 1
+    }
+  }
+}
+
+for (i in 1:nrow(birdphen)) {
+  for (a in 1:nrow(occupancy)) {
+    if ((occupancy[a,"year"] == birdphen[i, "year"]) & (occupancy[a,"site"] == birdphen[i, "site"])) {
+      if ((!is.na(birdphen[i,"fki"])) & (birdphen[i, "species"] == "bluti")) {
+        occupancy[a, "occ_boxes"] <- occupancy[a, "occ_boxes"] + 1
+      }
+    }
+  }
+}
+
+for (i in 1:nrow(occupancy)) {
+  if (occupancy[i, "total_boxes"] == 0) {
+    occupancy[i, "occ_boxes"] <- NA
+  }
+}
+
+occupancy$prop_occ <- occupancy$occ_boxes/occupancy$total_boxes
+
+
+environment[which(environment$sites =="EDI"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "EDI"), "prop_occ"]))  
+
+environment[which(environment$sites =="RSY"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "RSY"), "prop_occ"]))  
+
+environment[which(environment$sites =="FOF"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "FOF"), "prop_occ"]))  
+
+environment[which(environment$sites =="BAD"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "BAD"), "prop_occ"]))  
+
+environment[which(environment$sites =="LVN"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "LVN"), "prop_occ"]))  
+
+environment[which(environment$sites =="DOW"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "DOW"), "prop_occ"]))  
+
+environment[which(environment$sites =="GLF"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "GLF"), "prop_occ"]))  
+
+environment[which(environment$sites =="SER"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "SER"), "prop_occ"]))  
+
+environment[which(environment$sites =="MCH"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "MCH"), "prop_occ"]))  
+
+environment[which(environment$sites =="PTH"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "PTH"), "prop_occ"]))  
+
+environment[which(environment$sites =="STY"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "STY"), "prop_occ"]))  
+
+environment[which(environment$sites =="BIR"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "BIR"), "prop_occ"]))  
+
+environment[which(environment$sites =="DUN"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "DUN"), "prop_occ"]))  
+
+environment[which(environment$sites =="BLG"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "BLG"), "prop_occ"]))  
+
+environment[which(environment$sites =="PIT"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "PIT"), "prop_occ"]))  
+
+environment[which(environment$sites =="KCK"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "KCK"), "prop_occ"]))  
+
+environment[which(environment$sites =="KCZ"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "KCZ"), "prop_occ"]))  
+
+environment[which(environment$sites =="BLA"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "BLA"), "prop_occ"]))  
+
+environment[which(environment$sites =="CAL"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "CAL"), "prop_occ"]))  
+
+environment[which(environment$sites =="DNM"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "DNM"), "prop_occ"]))  
+
+environment[which(environment$sites =="DNC"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "DNC"), "prop_occ"]))  
+
+environment[which(environment$sites =="DNS"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "DNS"), "prop_occ"]))  
+
+environment[which(environment$sites =="DLW"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "DLW"), "prop_occ"]))  
+
+environment[which(environment$sites =="CRU"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "CRU"), "prop_occ"]))  
+
+environment[which(environment$sites =="NEW"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "NEW"), "prop_occ"]))  
+
+environment[which(environment$sites =="HWP"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "HWP"), "prop_occ"]))  
+
+environment[which(environment$sites =="INS"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "INS"), "prop_occ"]))  
+
+environment[which(environment$sites =="FSH"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "FSH"), "prop_occ"]))  
+
+environment[which(environment$sites =="RTH"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "RTH"), "prop_occ"]))  
+
+environment[which(environment$sites =="AVI"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "AVI"), "prop_occ"]))  
+
+environment[which(environment$sites =="AVN"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "AVN"), "prop_occ"]))  
+
+environment[which(environment$sites =="CAR"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "CAR"), "prop_occ"]))  
+
+environment[which(environment$sites =="SLS"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "SLS"), "prop_occ"]))  
+
+environment[which(environment$sites =="TOM"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "TOM"), "prop_occ"]))  
+
+environment[which(environment$sites =="DAV"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "DAV"), "prop_occ"]))  
+
+environment[which(environment$sites =="ART"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "ART"), "prop_occ"]))  
+
+environment[which(environment$sites =="MUN"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "MUN"), "prop_occ"]))  
+
+environment[which(environment$sites =="FOU"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "FOU"), "prop_occ"]))  
+
+environment[which(environment$sites =="ALN"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "ALN"), "prop_occ"]))  
+
+environment[which(environment$sites =="DEL"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "DEL"), "prop_occ"]))  
+
+environment[which(environment$sites =="TAI"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "TAI"), "prop_occ"]))  
+
+environment[which(environment$sites =="SPD"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "SPD"), "prop_occ"]))  
+
+environment[which(environment$sites =="OSP"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "OSP"), "prop_occ"]))  
+
+environment[which(environment$sites =="DOR"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "DOR"), "prop_occ"]))  
+

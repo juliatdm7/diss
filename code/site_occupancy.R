@@ -13,17 +13,37 @@ sites$extra <- sites$dateofextraboxes
 
 sites$extra <- c(rep(2017,3), NA, 2017, NA, 2017, 2017, NA, rep(2017, 5), NA, rep(2017, 6), NA, NA, 2017, 2017, NA, 2017, 2017, NA, 2017, 2017, NA, rep(2017, 8), NA, 2017, NA, NA)
 
+sites["BAD", c("X2015", "X2016")] <- 1
+sites["MCH", "X2015"] <- 1
+sites["PTH", "X2016"] <- 1
+sites["BIR", "X2015"] <- 1
+sites["DUN", "X2016"] <- 1
+sites["DLW", "X2020"] <- 1
+sites["CRU", "X2020"] <- 1
+sites[25-44, "X2020"] <- 1
+sites[38-44, "X2021"] <- 1
+sites["TAI", "X2015"] <- 1
+
+sites$X2022 <- 1
+sites$X2023 <- 1
+sites$X2024 <- 1
+
+sites <- sites %>%  relocate(X2022:X2024, .before = extras) 
+
 av_occupancy <- data.frame(site = sites$site, occupancy = rep(NA, nrow(sites)))
 
-# EDI site
 
-EDI_nb <- data.frame(year = c(2014:2021), site = rep("EDI", 8), all_nb = seq(1,8,1), occ_nb = rep(0, 8))
+# EDI
+
+EDI_nb <- data.frame(year = c(2014:2021), site = rep("EDI", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
 
 for (i in 1:nrow(EDI_nb)) {
-  if (EDI_nb[i, "year"] < sites["EDI", "extra"]) {
-    EDI_nb[i,"all_nb"] <- sites["EDI","Original.Boxes"]
+  if (is.na(sites["EDI", "extra"])) {
+    EDI_nb[i,"all_nb"] <- sites["EDI","Current.Boxes"]
   } else if (EDI_nb[i, "year"] >= sites["EDI", "extra"]) {
     EDI_nb[i,"all_nb"] <- sites["EDI","Current.Boxes"]
+  } else if (EDI_nb[i, "year"] < sites["EDI", "extra"]) {
+    EDI_nb[i,"all_nb"] <- sites["EDI","Original.Boxes"]
   }
 }
 
@@ -35,7 +55,7 @@ for (i in 10:17) {
   }
 }
 
-blutiEDI <- blutidf[which(blutidf$site == "EDI" & blutidf$year <= 2021),] %>% count(year)
+blutiEDI <- blutidf[which(blutidf$site == "EDI"),] %>% count(year)
 
 for (i in 1:nrow(EDI_nb)) {
   if (EDI_nb[i,"year"] %in% blutiEDI$year) {
@@ -45,14 +65,13 @@ for (i in 1:nrow(EDI_nb)) {
   }
 }
 
-EDI_nb$occupancy <- EDI_nb$occ_nb/EDI_nb$all_nb 
+EDI_nb$occupancy <- EDI_nb$occ_nb/EDI_nb$all_nb
 
 av_occupancy[which(av_occupancy$site == "EDI"),"occupancy"] <- mean(na.omit(EDI_nb$occupancy))
 
-
 # RSY site
 
-RSY_nb <- data.frame(year = c(2014:2021), site = rep("RSY", 8), all_nb = seq(1,8,1), occ_nb = rep(0, 8))
+RSY_nb <- data.frame(year = c(2014:2024), site = rep("RSY", 11), all_nb = seq(1,11,1), occ_nb = rep(0, 11))
 
 for (i in 1:nrow(RSY_nb)) {
   if (RSY_nb[i, "year"] < sites["RSY", "extra"]) {
@@ -70,7 +89,7 @@ for (i in 10:17) {
   }
 }
 
-blutiRSY <- blutidf[which(blutidf$site == "RSY" & blutidf$year <= 2021),] %>% count(year)
+blutiRSY <- blutidf[which(blutidf$site == "RSY"),] %>% count(year)
 
 for (i in 1:nrow(RSY_nb)) {
   if (RSY_nb[i,"year"] %in% blutiRSY$year) {
@@ -87,7 +106,7 @@ av_occupancy[which(av_occupancy$site == "RSY"),"occupancy"] <- mean(na.omit(RSY_
 
 # FOF site
 
-FOF_nb <- data.frame(year = c(2014:2021), site = rep("FOF", 8), all_nb = seq(1,8,1), occ_nb = rep(0, 8))
+FOF_nb <- data.frame(year = c(2014:2024), site = rep("FOF", 11), all_nb = seq(1,11,1), occ_nb = rep(0, 11))
 
 for (i in 1:nrow(FOF_nb)) {
   if (FOF_nb[i, "year"] < sites["FOF", "extra"]) {
@@ -105,7 +124,7 @@ for (i in 10:17) {
   }
 }
 
-blutiFOF <- blutidf[which(blutidf$site == "FOF" & blutidf$year <= 2021),] %>% count(year)
+blutiFOF <- blutidf[which(blutidf$site == "FOF"),] %>% count(year)
 
 for (i in 1:nrow(FOF_nb)) {
   if (FOF_nb[i,"year"] %in% blutiFOF$year) {
@@ -121,7 +140,7 @@ av_occupancy[which(av_occupancy$site == "FOF"),"occupancy"] <- mean(na.omit(FOF_
 
 # BAD site - occupancy estimation might be wrong as there are breeding recordings even though, according to sites.csv, nestboxes were missing
 
-BAD_nb <- data.frame(year = c(2014:2021), site = rep("BAD", 8), all_nb = seq(1,8,1), occ_nb = rep(0, 8))
+BAD_nb <- data.frame(year = c(2014:2024), site = rep("BAD", 11), all_nb = seq(1,11,1), occ_nb = rep(0, 11))
 
 for (i in 1:nrow(BAD_nb)) {
   if (is.na(sites["BAD", "extra"])) {
@@ -141,7 +160,7 @@ for (i in 10:17) {
   }
 }
 
-blutiBAD <- blutidf[which(blutidf$site == "BAD" & blutidf$year <= 2021),] %>% count(year)
+blutiBAD <- blutidf[which(blutidf$site == "BAD"),] %>% count(year)
 
 for (i in 1:nrow(BAD_nb)) {
   if (BAD_nb[i,"year"] %in% blutiBAD$year) {
@@ -157,7 +176,7 @@ av_occupancy[which(av_occupancy$site == "BAD"),"occupancy"] <- mean(na.omit(BAD_
 
 # LVN site
 
-LVN_nb <- data.frame(year = c(2014:2021), site = rep("LVN", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+LVN_nb <- data.frame(year = c(2014:2024), site = rep("LVN", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(LVN_nb)) {
   if (is.na(sites["LVN", "extra"])) {
@@ -177,7 +196,7 @@ for (i in 10:17) {
   }
 }
 
-blutiLVN <- blutidf[which(blutidf$site == "LVN" & blutidf$year <= 2021),] %>% count(year)
+blutiLVN <- blutidf[which(blutidf$site == "LVN"),] %>% count(year)
 
 for (i in 1:nrow(LVN_nb)) {
   if (LVN_nb[i,"year"] %in% blutiLVN$year) {
@@ -193,7 +212,7 @@ av_occupancy[which(av_occupancy$site == "LVN"),"occupancy"] <- mean(na.omit(LVN_
 
 # DOW site
 
-DOW_nb <- data.frame(year = c(2014:2021), site = rep("DOW", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+DOW_nb <- data.frame(year = c(2014:2024), site = rep("DOW", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(DOW_nb)) {
   if (is.na(sites["DOW", "extra"])) {
@@ -213,7 +232,7 @@ for (i in 10:17) {
   }
 }
 
-blutiDOW <- blutidf[which(blutidf$site == "DOW" & blutidf$year <= 2021),] %>% count(year)
+blutiDOW <- blutidf[which(blutidf$site == "DOW"),] %>% count(year)
 
 for (i in 1:nrow(DOW_nb)) {
   if (DOW_nb[i,"year"] %in% blutiDOW$year) {
@@ -229,7 +248,7 @@ av_occupancy[which(av_occupancy$site == "DOW"),"occupancy"] <- mean(na.omit(DOW_
 
 # GLF site
 
-GLF_nb <- data.frame(year = c(2014:2021), site = rep("GLF", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+GLF_nb <- data.frame(year = c(2014:2024), site = rep("GLF", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(GLF_nb)) {
   if (is.na(sites["GLF", "extra"])) {
@@ -249,7 +268,7 @@ for (i in 10:17) {
   }
 }
 
-blutiGLF <- blutidf[which(blutidf$site == "GLF" & blutidf$year <= 2021),] %>% count(year)
+blutiGLF <- blutidf[which(blutidf$site == "GLF"),] %>% count(year)
 
 for (i in 1:nrow(GLF_nb)) {
   if (GLF_nb[i,"year"] %in% blutiGLF$year) {
@@ -265,7 +284,7 @@ av_occupancy[which(av_occupancy$site == "GLF"),"occupancy"] <- mean(na.omit(GLF_
 
 # SER site
 
-SER_nb <- data.frame(year = c(2014:2021), site = rep("SER", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+SER_nb <- data.frame(year = c(2014:2024), site = rep("SER", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(SER_nb)) {
   if (is.na(sites["SER", "extra"])) {
@@ -285,7 +304,7 @@ for (i in 10:17) {
   }
 }
 
-blutiSER <- blutidf[which(blutidf$site == "SER" & blutidf$year <= 2021),] %>% count(year)
+blutiSER <- blutidf[which(blutidf$site == "SER"),] %>% count(year)
 
 for (i in 1:nrow(SER_nb)) {
   if (SER_nb[i,"year"] %in% blutiSER$year) {
@@ -301,7 +320,7 @@ av_occupancy[which(av_occupancy$site == "SER"),"occupancy"] <- mean(na.omit(SER_
 
 # MCH site - MIGHT BE A WRONG ESTIMATION; SAME REASON AS FOR BAD
 
-MCH_nb <- data.frame(year = c(2014:2021), site = rep("MCH", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+MCH_nb <- data.frame(year = c(2014:2024), site = rep("MCH", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(MCH_nb)) {
   if (is.na(sites["MCH", "extra"])) {
@@ -321,7 +340,7 @@ for (i in 10:17) {
   }
 }
 
-blutiMCH <- blutidf[which(blutidf$site == "MCH" & blutidf$year <= 2021),] %>% count(year)
+blutiMCH <- blutidf[which(blutidf$site == "MCH"),] %>% count(year)
 
 for (i in 1:nrow(MCH_nb)) {
   if (MCH_nb[i,"year"] %in% blutiMCH$year) {
@@ -337,7 +356,7 @@ av_occupancy[which(av_occupancy$site == "MCH"),"occupancy"] <- mean(na.omit(MCH_
 
 # PTH site
 
-PTH_nb <- data.frame(year = c(2014:2021), site = rep("PTH", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+PTH_nb <- data.frame(year = c(2014:2024), site = rep("PTH", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(PTH_nb)) {
   if (is.na(sites["PTH", "extra"])) {
@@ -357,7 +376,7 @@ for (i in 10:17) {
   }
 }
 
-blutiPTH <- blutidf[which(blutidf$site == "PTH" & blutidf$year <= 2021),] %>% count(year)
+blutiPTH <- blutidf[which(blutidf$site == "PTH"),] %>% count(year)
 
 for (i in 1:nrow(PTH_nb)) {
   if (PTH_nb[i,"year"] %in% blutiPTH$year) {
@@ -373,7 +392,7 @@ av_occupancy[which(av_occupancy$site == "PTH"),"occupancy"] <- mean(na.omit(PTH_
 
 # STY site
 
-STY_nb <- data.frame(year = c(2014:2021), site = rep("STY", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+STY_nb <- data.frame(year = c(2014:2024), site = rep("STY", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(STY_nb)) {
   if (is.na(sites["STY", "extra"])) {
@@ -393,7 +412,7 @@ for (i in 10:17) {
   }
 }
 
-blutiSTY <- blutidf[which(blutidf$site == "STY" & blutidf$year <= 2021),] %>% count(year)
+blutiSTY <- blutidf[which(blutidf$site == "STY"),] %>% count(year)
 
 for (i in 1:nrow(STY_nb)) {
   if (STY_nb[i,"year"] %in% blutiSTY$year) {
@@ -409,7 +428,7 @@ av_occupancy[which(av_occupancy$site == "STY"),"occupancy"] <- mean(na.omit(STY_
 
 # BIR site
 
-BIR_nb <- data.frame(year = c(2014:2021), site = rep("BIR", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+BIR_nb <- data.frame(year = c(2014:2024), site = rep("BIR", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(BIR_nb)) {
   if (is.na(sites["BIR", "extra"])) {
@@ -429,7 +448,7 @@ for (i in 10:17) {
   }
 }
 
-blutiBIR <- blutidf[which(blutidf$site == "BIR" & blutidf$year <= 2021),] %>% count(year)
+blutiBIR <- blutidf[which(blutidf$site == "BIR"),] %>% count(year)
 
 for (i in 1:nrow(BIR_nb)) {
   if (BIR_nb[i,"year"] %in% blutiBIR$year) {
@@ -445,7 +464,7 @@ av_occupancy[which(av_occupancy$site == "BIR"),"occupancy"] <- mean(na.omit(BIR_
 
 # DUN site
 
-DUN_nb <- data.frame(year = c(2014:2021), site = rep("DUN", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+DUN_nb <- data.frame(year = c(2014:2024), site = rep("DUN", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(DUN_nb)) {
   if (is.na(sites["DUN", "extra"])) {
@@ -465,7 +484,7 @@ for (i in 10:17) {
   }
 }
 
-blutiDUN <- blutidf[which(blutidf$site == "DUN" & blutidf$year <= 2021),] %>% count(year)
+blutiDUN <- blutidf[which(blutidf$site == "DUN"),] %>% count(year)
 
 for (i in 1:nrow(DUN_nb)) {
   if (DUN_nb[i,"year"] %in% blutiDUN$year) {
@@ -481,7 +500,7 @@ av_occupancy[which(av_occupancy$site == "DUN"),"occupancy"] <- mean(na.omit(DUN_
 
 # BLG site
 
-BLG_nb <- data.frame(year = c(2014:2021), site = rep("BLG", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+BLG_nb <- data.frame(year = c(2014:2024), site = rep("BLG", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(BLG_nb)) {
   if (is.na(sites["BLG", "extra"])) {
@@ -501,7 +520,7 @@ for (i in 10:17) {
   }
 }
 
-blutiBLG <- blutidf[which(blutidf$site == "BLG" & blutidf$year <= 2021),] %>% count(year)
+blutiBLG <- blutidf[which(blutidf$site == "BLG"),] %>% count(year)
 
 for (i in 1:nrow(BLG_nb)) {
   if (BLG_nb[i,"year"] %in% blutiBLG$year) {
@@ -517,7 +536,7 @@ av_occupancy[which(av_occupancy$site == "BLG"),"occupancy"] <- mean(na.omit(BLG_
 
 # PIT site
 
-PIT_nb <- data.frame(year = c(2014:2021), site = rep("PIT", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+PIT_nb <- data.frame(year = c(2014:2024), site = rep("PIT", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(PIT_nb)) {
   if (is.na(sites["PIT", "extra"])) {
@@ -537,7 +556,7 @@ for (i in 10:17) {
   }
 }
 
-blutiPIT <- blutidf[which(blutidf$site == "PIT" & blutidf$year <= 2021),] %>% count(year)
+blutiPIT <- blutidf[which(blutidf$site == "PIT"),] %>% count(year)
 
 for (i in 1:nrow(PIT_nb)) {
   if (PIT_nb[i,"year"] %in% blutiPIT$year) {
@@ -553,7 +572,7 @@ av_occupancy[which(av_occupancy$site == "PIT"),"occupancy"] <- mean(na.omit(PIT_
 
 # KCK site
 
-KCK_nb <- data.frame(year = c(2014:2021), site = rep("KCK", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+KCK_nb <- data.frame(year = c(2014:2024), site = rep("KCK", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(KCK_nb)) {
   if (is.na(sites["KCK", "extra"])) {
@@ -573,7 +592,7 @@ for (i in 10:17) {
   }
 }
 
-blutiKCK <- blutidf[which(blutidf$site == "KCK" & blutidf$year <= 2021),] %>% count(year)
+blutiKCK <- blutidf[which(blutidf$site == "KCK"),] %>% count(year)
 
 for (i in 1:nrow(KCK_nb)) {
   if (KCK_nb[i,"year"] %in% blutiKCK$year) {
@@ -589,7 +608,7 @@ av_occupancy[which(av_occupancy$site == "KCK"),"occupancy"] <- mean(na.omit(KCK_
 
 # KCZ site
 
-KCZ_nb <- data.frame(year = c(2014:2021), site = rep("KCZ", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+KCZ_nb <- data.frame(year = c(2014:2024), site = rep("KCZ", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(KCZ_nb)) {
   if (is.na(sites["KCZ", "extra"])) {
@@ -609,7 +628,7 @@ for (i in 10:17) {
   }
 }
 
-blutiKCZ <- blutidf[which(blutidf$site == "KCZ" & blutidf$year <= 2021),] %>% count(year)
+blutiKCZ <- blutidf[which(blutidf$site == "KCZ"),] %>% count(year)
 
 for (i in 1:nrow(KCZ_nb)) {
   if (KCZ_nb[i,"year"] %in% blutiKCZ$year) {
@@ -625,7 +644,7 @@ av_occupancy[which(av_occupancy$site == "KCZ"),"occupancy"] <- mean(na.omit(KCZ_
 
 # BLA site
 
-BLA_nb <- data.frame(year = c(2014:2021), site = rep("BLA", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+BLA_nb <- data.frame(year = c(2014:2024), site = rep("BLA", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(BLA_nb)) {
   if (is.na(sites["BLA", "extra"])) {
@@ -645,7 +664,7 @@ for (i in 10:17) {
   }
 }
 
-blutiBLA <- blutidf[which(blutidf$site == "BLA" & blutidf$year <= 2021),] %>% count(year)
+blutiBLA <- blutidf[which(blutidf$site == "BLA"),] %>% count(year)
 
 for (i in 1:nrow(BLA_nb)) {
   if (BLA_nb[i,"year"] %in% blutiBLA$year) {
@@ -661,7 +680,7 @@ av_occupancy[which(av_occupancy$site == "BLA"),"occupancy"] <- mean(na.omit(BLA_
 
 # CAL site
 
-CAL_nb <- data.frame(year = c(2014:2021), site = rep("CAL", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+CAL_nb <- data.frame(year = c(2014:2024), site = rep("CAL", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(CAL_nb)) {
   if (is.na(sites["CAL", "extra"])) {
@@ -681,7 +700,7 @@ for (i in 10:17) {
   }
 }
 
-blutiCAL <- blutidf[which(blutidf$site == "CAL" & blutidf$year <= 2021),] %>% count(year)
+blutiCAL <- blutidf[which(blutidf$site == "CAL"),] %>% count(year)
 
 for (i in 1:nrow(CAL_nb)) {
   if (CAL_nb[i,"year"] %in% blutiCAL$year) {
@@ -698,7 +717,7 @@ av_occupancy[which(av_occupancy$site == "CAL"),"occupancy"] <- mean(na.omit(CAL_
 
 # DNM site
 
-DNM_nb <- data.frame(year = c(2014:2021), site = rep("DNM", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+DNM_nb <- data.frame(year = c(2014:2024), site = rep("DNM", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(DNM_nb)) {
   if (is.na(sites["DNM", "extra"])) {
@@ -718,7 +737,7 @@ for (i in 10:17) {
   }
 }
 
-blutiDNM <- blutidf[which(blutidf$site == "DNM" & blutidf$year <= 2021),] %>% count(year)
+blutiDNM <- blutidf[which(blutidf$site == "DNM"),] %>% count(year)
 
 for (i in 1:nrow(DNM_nb)) {
   if (DNM_nb[i,"year"] %in% blutiDNM$year) {
@@ -734,7 +753,7 @@ av_occupancy[which(av_occupancy$site == "DNM"),"occupancy"] <- mean(na.omit(DNM_
 
 # DNC site
 
-DNC_nb <- data.frame(year = c(2014:2021), site = rep("DNC", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+DNC_nb <- data.frame(year = c(2014:2024), site = rep("DNC", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(DNC_nb)) {
   if (is.na(sites["DNC", "extra"])) {
@@ -754,7 +773,7 @@ for (i in 10:17) {
   }
 }
 
-blutiDNC <- blutidf[which(blutidf$site == "DNC" & blutidf$year <= 2021),] %>% count(year)
+blutiDNC <- blutidf[which(blutidf$site == "DNC"),] %>% count(year)
 
 for (i in 1:nrow(DNC_nb)) {
   if (DNC_nb[i,"year"] %in% blutiDNC$year) {
@@ -770,7 +789,7 @@ av_occupancy[which(av_occupancy$site == "DNC"),"occupancy"] <- mean(na.omit(DNC_
 
 # DNS site
 
-DNS_nb <- data.frame(year = c(2014:2021), site = rep("DNS", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+DNS_nb <- data.frame(year = c(2014:2024), site = rep("DNS", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(DNS_nb)) {
   if (is.na(sites["DNS", "extra"])) {
@@ -790,7 +809,7 @@ for (i in 10:17) {
   }
 }
 
-blutiDNS <- blutidf[which(blutidf$site == "DNS" & blutidf$year <= 2021),] %>% count(year)
+blutiDNS <- blutidf[which(blutidf$site == "DNS"),] %>% count(year)
 
 for (i in 1:nrow(DNS_nb)) {
   if (DNS_nb[i,"year"] %in% blutiDNS$year) {
@@ -806,7 +825,7 @@ av_occupancy[which(av_occupancy$site == "DNS"),"occupancy"] <- mean(na.omit(DNS_
 
 # DLW site
 
-DLW_nb <- data.frame(year = c(2014:2021), site = rep("DLW", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+DLW_nb <- data.frame(year = c(2014:2024), site = rep("DLW", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(DLW_nb)) {
   if (is.na(sites["DLW", "extra"])) {
@@ -826,7 +845,7 @@ for (i in 10:17) {
   }
 }
 
-blutiDLW <- blutidf[which(blutidf$site == "DLW" & blutidf$year <= 2021),] %>% count(year)
+blutiDLW <- blutidf[which(blutidf$site == "DLW"),] %>% count(year)
 
 for (i in 1:nrow(DLW_nb)) {
   if (DLW_nb[i,"year"] %in% blutiDLW$year) {
@@ -842,7 +861,7 @@ av_occupancy[which(av_occupancy$site == "DLW"),"occupancy"] <- mean(na.omit(DLW_
 
 # CRU site
 
-CRU_nb <- data.frame(year = c(2014:2021), site = rep("CRU", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+CRU_nb <- data.frame(year = c(2014:2024), site = rep("CRU", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(CRU_nb)) {
   if (is.na(sites["CRU", "extra"])) {
@@ -862,7 +881,7 @@ for (i in 10:17) {
   }
 }
 
-blutiCRU <- blutidf[which(blutidf$site == "CRU" & blutidf$year <= 2021),] %>% count(year)
+blutiCRU <- blutidf[which(blutidf$site == "CRU"),] %>% count(year)
 
 for (i in 1:nrow(CRU_nb)) {
   if (CRU_nb[i,"year"] %in% blutiCRU$year) {
@@ -878,7 +897,7 @@ av_occupancy[which(av_occupancy$site == "CRU"),"occupancy"] <- mean(na.omit(CRU_
 
 # NEW site
 
-NEW_nb <- data.frame(year = c(2014:2021), site = rep("NEW", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+NEW_nb <- data.frame(year = c(2014:2024), site = rep("NEW", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 1))
 
 for (i in 1:nrow(NEW_nb)) {
   if (is.na(sites["NEW", "extra"])) {
@@ -898,7 +917,7 @@ for (i in 10:17) {
   }
 }
 
-blutiNEW <- blutidf[which(blutidf$site == "NEW" & blutidf$year <= 2021),] %>% count(year)
+blutiNEW <- blutidf[which(blutidf$site == "NEW"),] %>% count(year)
 
 for (i in 1:nrow(NEW_nb)) {
   if (NEW_nb[i,"year"] %in% blutiNEW$year) {
@@ -914,7 +933,7 @@ av_occupancy[which(av_occupancy$site == "NEW"),"occupancy"] <- mean(na.omit(NEW_
 
 # HWP site
 
-HWP_nb <- data.frame(year = c(2014:2021), site = rep("HWP", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+HWP_nb <- data.frame(year = c(2014:2024), site = rep("HWP", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(HWP_nb)) {
   if (is.na(sites["HWP", "extra"])) {
@@ -934,7 +953,7 @@ for (i in 10:17) {
   }
 }
 
-blutiHWP <- blutidf[which(blutidf$site == "HWP" & blutidf$year <= 2021),] %>% count(year)
+blutiHWP <- blutidf[which(blutidf$site == "HWP"),] %>% count(year)
 
 for (i in 1:nrow(HWP_nb)) {
   if (HWP_nb[i,"year"] %in% blutiHWP$year) {
@@ -950,7 +969,7 @@ av_occupancy[which(av_occupancy$site == "HWP"),"occupancy"] <- mean(na.omit(HWP_
 
 # INS site
 
-INS_nb <- data.frame(year = c(2014:2021), site = rep("INS", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+INS_nb <- data.frame(year = c(2014:2024), site = rep("INS", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(INS_nb)) {
   if (is.na(sites["INS", "extra"])) {
@@ -970,7 +989,7 @@ for (i in 10:17) {
   }
 }
 
-blutiINS <- blutidf[which(blutidf$site == "INS" & blutidf$year <= 2021),] %>% count(year)
+blutiINS <- blutidf[which(blutidf$site == "INS"),] %>% count(year)
 
 for (i in 1:nrow(INS_nb)) {
   if (INS_nb[i,"year"] %in% blutiINS$year) {
@@ -986,7 +1005,7 @@ av_occupancy[which(av_occupancy$site == "INS"),"occupancy"] <- mean(na.omit(INS_
 
 # FSH
 
-FSH_nb <- data.frame(year = c(2014:2021), site = rep("FSH", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+FSH_nb <- data.frame(year = c(2014:2024), site = rep("FSH", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(FSH_nb)) {
   if (is.na(sites["FSH", "extra"])) {
@@ -1006,7 +1025,7 @@ for (i in 10:17) {
   }
 }
 
-blutiFSH <- blutidf[which(blutidf$site == "FSH" & blutidf$year <= 2021),] %>% count(year)
+blutiFSH <- blutidf[which(blutidf$site == "FSH"),] %>% count(year)
 
 for (i in 1:nrow(FSH_nb)) {
   if (FSH_nb[i,"year"] %in% blutiFSH$year) {
@@ -1022,7 +1041,7 @@ av_occupancy[which(av_occupancy$site == "FSH"),"occupancy"] <- mean(na.omit(FSH_
 
 # RTH
 
-RTH_nb <- data.frame(year = c(2014:2021), site = rep("RTH", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+RTH_nb <- data.frame(year = c(2014:2024), site = rep("RTH", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(RTH_nb)) {
   if (is.na(sites["RTH", "extra"])) {
@@ -1042,7 +1061,7 @@ for (i in 10:17) {
   }
 }
 
-blutiRTH <- blutidf[which(blutidf$site == "RTH" & blutidf$year <= 2021),] %>% count(year)
+blutiRTH <- blutidf[which(blutidf$site == "RTH"),] %>% count(year)
 
 for (i in 1:nrow(RTH_nb)) {
   if (RTH_nb[i,"year"] %in% blutiRTH$year) {
@@ -1058,7 +1077,7 @@ av_occupancy[which(av_occupancy$site == "RTH"),"occupancy"] <- mean(na.omit(RTH_
 
 # AVI
 
-AVI_nb <- data.frame(year = c(2014:2021), site = rep("AVI", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+AVI_nb <- data.frame(year = c(2014:2024), site = rep("AVI", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(AVI_nb)) {
   if (is.na(sites["AVI", "extra"])) {
@@ -1078,7 +1097,7 @@ for (i in 10:17) {
   }
 }
 
-blutiAVI <- blutidf[which(blutidf$site == "AVI" & blutidf$year <= 2021),] %>% count(year)
+blutiAVI <- blutidf[which(blutidf$site == "AVI"),] %>% count(year)
 
 for (i in 1:nrow(AVI_nb)) {
   if (AVI_nb[i,"year"] %in% blutiAVI$year) {
@@ -1094,7 +1113,7 @@ av_occupancy[which(av_occupancy$site == "AVI"),"occupancy"] <- mean(na.omit(AVI_
 
 # AVN
 
-AVN_nb <- data.frame(year = c(2014:2021), site = rep("AVN", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+AVN_nb <- data.frame(year = c(2014:2024), site = rep("AVN", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(AVN_nb)) {
   if (is.na(sites["AVN", "extra"])) {
@@ -1114,7 +1133,7 @@ for (i in 10:17) {
   }
 }
 
-blutiAVN <- blutidf[which(blutidf$site == "AVN" & blutidf$year <= 2021),] %>% count(year)
+blutiAVN <- blutidf[which(blutidf$site == "AVN"),] %>% count(year)
 
 for (i in 1:nrow(AVN_nb)) {
   if (AVN_nb[i,"year"] %in% blutiAVN$year) {
@@ -1130,7 +1149,7 @@ av_occupancy[which(av_occupancy$site == "AVN"),"occupancy"] <- mean(na.omit(AVN_
 
 # CAR
 
-CAR_nb <- data.frame(year = c(2014:2021), site = rep("CAR", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+CAR_nb <- data.frame(year = c(2014:2024), site = rep("CAR", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(CAR_nb)) {
   if (is.na(sites["CAR", "extra"])) {
@@ -1150,7 +1169,7 @@ for (i in 10:17) {
   }
 }
 
-blutiCAR <- blutidf[which(blutidf$site == "CAR" & blutidf$year <= 2021),] %>% count(year)
+blutiCAR <- blutidf[which(blutidf$site == "CAR"),] %>% count(year)
 
 for (i in 1:nrow(CAR_nb)) {
   if (CAR_nb[i,"year"] %in% blutiCAR$year) {
@@ -1166,7 +1185,7 @@ av_occupancy[which(av_occupancy$site == "CAR"),"occupancy"] <- mean(na.omit(CAR_
 
 # SLS
 
-SLS_nb <- data.frame(year = c(2014:2021), site = rep("SLS", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+SLS_nb <- data.frame(year = c(2014:2024), site = rep("SLS", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(SLS_nb)) {
   if (is.na(sites["SLS", "extra"])) {
@@ -1186,7 +1205,7 @@ for (i in 10:17) {
   }
 }
 
-blutiSLS <- blutidf[which(blutidf$site == "SLS" & blutidf$year <= 2021),] %>% count(year)
+blutiSLS <- blutidf[which(blutidf$site == "SLS"),] %>% count(year)
 
 for (i in 1:nrow(SLS_nb)) {
   if (SLS_nb[i,"year"] %in% blutiSLS$year) {
@@ -1202,7 +1221,7 @@ av_occupancy[which(av_occupancy$site == "SLS"),"occupancy"] <- mean(na.omit(SLS_
 
 # TOM
 
-TOM_nb <- data.frame(year = c(2014:2021), site = rep("TOM", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+TOM_nb <- data.frame(year = c(2014:2024), site = rep("TOM", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(TOM_nb)) {
   if (is.na(sites["TOM", "extra"])) {
@@ -1222,7 +1241,7 @@ for (i in 10:17) {
   }
 }
 
-blutiTOM <- blutidf[which(blutidf$site == "TOM" & blutidf$year <= 2021),] %>% count(year)
+blutiTOM <- blutidf[which(blutidf$site == "TOM"),] %>% count(year)
 
 for (i in 1:nrow(TOM_nb)) {
   if (TOM_nb[i,"year"] %in% blutiTOM$year) {
@@ -1238,7 +1257,7 @@ av_occupancy[which(av_occupancy$site == "TOM"),"occupancy"] <- mean(na.omit(TOM_
 
 # DAV
 
-DAV_nb <- data.frame(year = c(2014:2021), site = rep("DAV", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+DAV_nb <- data.frame(year = c(2014:2024), site = rep("DAV", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(DAV_nb)) {
   if (is.na(sites["DAV", "extra"])) {
@@ -1258,7 +1277,7 @@ for (i in 10:17) {
   }
 }
 
-blutiDAV <- blutidf[which(blutidf$site == "DAV" & blutidf$year <= 2021),] %>% count(year)
+blutiDAV <- blutidf[which(blutidf$site == "DAV"),] %>% count(year)
 
 for (i in 1:nrow(DAV_nb)) {
   if (DAV_nb[i,"year"] %in% blutiDAV$year) {
@@ -1274,7 +1293,7 @@ av_occupancy[which(av_occupancy$site == "DAV"),"occupancy"] <- mean(na.omit(DAV_
 
 # ART
 
-ART_nb <- data.frame(year = c(2014:2021), site = rep("ART", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+ART_nb <- data.frame(year = c(2014:2024), site = rep("ART", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(ART_nb)) {
   if (is.na(sites["ART", "extra"])) {
@@ -1294,7 +1313,7 @@ for (i in 10:17) {
   }
 }
 
-blutiART <- blutidf[which(blutidf$site == "ART" & blutidf$year <= 2021),] %>% count(year)
+blutiART <- blutidf[which(blutidf$site == "ART"),] %>% count(year)
 
 for (i in 1:nrow(ART_nb)) {
   if (ART_nb[i,"year"] %in% blutiART$year) {
@@ -1310,7 +1329,7 @@ av_occupancy[which(av_occupancy$site == "ART"),"occupancy"] <- mean(na.omit(ART_
 
 # MUN
 
-MUN_nb <- data.frame(year = c(2014:2021), site = rep("MUN", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+MUN_nb <- data.frame(year = c(2014:2024), site = rep("MUN", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(MUN_nb)) {
   if (is.na(sites["MUN", "extra"])) {
@@ -1330,7 +1349,7 @@ for (i in 10:17) {
   }
 }
 
-blutiMUN <- blutidf[which(blutidf$site == "MUN" & blutidf$year <= 2021),] %>% count(year)
+blutiMUN <- blutidf[which(blutidf$site == "MUN"),] %>% count(year)
 
 for (i in 1:nrow(MUN_nb)) {
   if (MUN_nb[i,"year"] %in% blutiMUN$year) {
@@ -1346,7 +1365,7 @@ av_occupancy[which(av_occupancy$site == "MUN"),"occupancy"] <- mean(na.omit(MUN_
 
 # FOU
 
-FOU_nb <- data.frame(year = c(2014:2021), site = rep("FOU", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+FOU_nb <- data.frame(year = c(2014:2024), site = rep("FOU", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(FOU_nb)) {
   if (is.na(sites["FOU", "extra"])) {
@@ -1366,7 +1385,7 @@ for (i in 10:17) {
   }
 }
 
-blutiFOU <- blutidf[which(blutidf$site == "FOU" & blutidf$year <= 2021),] %>% count(year)
+blutiFOU <- blutidf[which(blutidf$site == "FOU"),] %>% count(year)
 
 for (i in 1:nrow(FOU_nb)) {
   if (FOU_nb[i,"year"] %in% blutiFOU$year) {
@@ -1382,7 +1401,7 @@ av_occupancy[which(av_occupancy$site == "FOU"),"occupancy"] <- mean(na.omit(FOU_
 
 # ALN
 
-ALN_nb <- data.frame(year = c(2014:2021), site = rep("ALN", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+ALN_nb <- data.frame(year = c(2014:2024), site = rep("ALN", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(ALN_nb)) {
   if (is.na(sites["ALN", "extra"])) {
@@ -1402,7 +1421,7 @@ for (i in 10:17) {
   }
 }
 
-blutiALN <- blutidf[which(blutidf$site == "ALN" & blutidf$year <= 2021),] %>% count(year)
+blutiALN <- blutidf[which(blutidf$site == "ALN"),] %>% count(year)
 
 for (i in 1:nrow(ALN_nb)) {
   if (ALN_nb[i,"year"] %in% blutiALN$year) {
@@ -1418,7 +1437,7 @@ av_occupancy[which(av_occupancy$site == "ALN"),"occupancy"] <- mean(na.omit(ALN_
 
 # DEL
 
-DEL_nb <- data.frame(year = c(2014:2021), site = rep("DEL", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+DEL_nb <- data.frame(year = c(2014:2024), site = rep("DEL", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(DEL_nb)) {
   if (is.na(sites["DEL", "extra"])) {
@@ -1438,7 +1457,7 @@ for (i in 10:17) {
   }
 }
 
-blutiDEL <- blutidf[which(blutidf$site == "DEL" & blutidf$year <= 2021),] %>% count(year)
+blutiDEL <- blutidf[which(blutidf$site == "DEL"),] %>% count(year)
 
 for (i in 1:nrow(DEL_nb)) {
   if (DEL_nb[i,"year"] %in% blutiDEL$year) {
@@ -1454,7 +1473,7 @@ av_occupancy[which(av_occupancy$site == "DEL"),"occupancy"] <- mean(na.omit(DEL_
 
 # TAI
 
-TAI_nb <- data.frame(year = c(2014:2021), site = rep("TAI", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+TAI_nb <- data.frame(year = c(2014:2024), site = rep("TAI", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(TAI_nb)) {
   if (is.na(sites["TAI", "extra"])) {
@@ -1474,7 +1493,7 @@ for (i in 10:17) {
   }
 }
 
-blutiTAI <- blutidf[which(blutidf$site == "TAI" & blutidf$year <= 2021),] %>% count(year)
+blutiTAI <- blutidf[which(blutidf$site == "TAI"),] %>% count(year)
 
 for (i in 1:nrow(TAI_nb)) {
   if (TAI_nb[i,"year"] %in% blutiTAI$year) {
@@ -1490,7 +1509,7 @@ av_occupancy[which(av_occupancy$site == "TAI"),"occupancy"] <- mean(na.omit(TAI_
 
 # SPD
 
-SPD_nb <- data.frame(year = c(2014:2021), site = rep("SPD", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+SPD_nb <- data.frame(year = c(2014:2024), site = rep("SPD", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(SPD_nb)) {
   if (is.na(sites["SPD", "extra"])) {
@@ -1510,7 +1529,7 @@ for (i in 10:17) {
   }
 }
 
-blutiSPD <- blutidf[which(blutidf$site == "SPD" & blutidf$year <= 2021),] %>% count(year)
+blutiSPD <- blutidf[which(blutidf$site == "SPD"),] %>% count(year)
 
 for (i in 1:nrow(SPD_nb)) {
   if (SPD_nb[i,"year"] %in% blutiSPD$year) {
@@ -1526,7 +1545,7 @@ av_occupancy[which(av_occupancy$site == "SPD"),"occupancy"] <- mean(na.omit(SPD_
 
 # OSP
 
-OSP_nb <- data.frame(year = c(2014:2021), site = rep("OSP", 8), all_nb = seq(1,8,1), occ_nb = rep(NA, 8))
+OSP_nb <- data.frame(year = c(2014:2024), site = rep("OSP", 11), all_nb = seq(1,11,1), occ_nb = rep(NA, 11))
 
 for (i in 1:nrow(OSP_nb)) {
   if (is.na(sites["OSP", "extra"])) {
@@ -1546,7 +1565,7 @@ for (i in 10:17) {
   }
 }
 
-blutiOSP <- blutidf[which(blutidf$site == "OSP" & blutidf$year <= 2021),] %>% count(year)
+blutiOSP <- blutidf[which(blutidf$site == "OSP"),] %>% count(year)
 
 for (i in 1:nrow(OSP_nb)) {
   if (OSP_nb[i,"year"] %in% blutiOSP$year) {
@@ -1582,7 +1601,7 @@ for (i in 10:17) {
   }
 }
 
-blutiDOR <- blutidf[which(blutidf$site == "DOR" & blutidf$year <= 2021),] %>% count(year)
+blutiDOR <- blutidf[which(blutidf$site == "DOR"),] %>% count(year)
 
 for (i in 1:nrow(DOR_nb)) {
   if (DOR_nb[i,"year"] %in% blutiDOR$year) {
@@ -1604,4 +1623,9 @@ blutidf <- read.csv("data/blutidf.csv")
 blutidf_3yo <- read.csv("data/blutidf_3yo.csv")
 blutidf$site_occ <- site_occupancy$occupancy[match(blutidf$site, site_elevation$site)] 
 blutidf_3yo$site_occ <- site_occupancy$occupancy[match(blutidf_3yo$site, site_elevation$site)] 
+
+
+
+### Calculating average nest box occupancy per site using solely Bird_Phenology.csv ###
+
 

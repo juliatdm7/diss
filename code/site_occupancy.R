@@ -5,7 +5,8 @@
 
 library(dplyr)
 
-
+allbirdphen <- read.csv("data/Bird_PhenologyII.csv")
+birdphen <- allbirdphen[-which(allbirdphen$X2brood.relay == 1),]  # removing relays because they would artificially increase the number of nest boxes
 occupancy <- data.frame(site = rep(c("EDI", "RSY", "FOF", "BAD", "LVN", "DOW", "GLF", "SER", "MCH", "PTH", "STY", "BIR", "DUN", "BLG", "PIT", "KCK", "KCZ", "BLA", "CAL", "DNM", "DNC", "DNS", "DLW", "CRU", "NEW", "HWP", "INS", "FSH", "RTH", "AVI", "AVN", "CAR", "SLS", "TOM", "DAV", "ART", "MUN", "FOU", "ALN", "DEL", "TAI", "SPD", "OSP", "DOR"), each = 11), year = rep(2014:2024, 44), total_boxes = 0, occ_boxes = 0)
 
 for (i in 1:nrow(birdphen)) {
@@ -1753,8 +1754,6 @@ blutidf_3yo$site_occ <- site_occupancy$occupancy[match(blutidf_3yo$site, site_el
 
 ### Calculating average nest box occupancy per site using solely Bird_Phenology.csv ###
 
-allbirdphen <- read.csv("data/Bird_PhenologyII.csv")
-birdphen <- allbirdphen[-which(allbirdphen$X2brood.relay == 1),]  # removing relays because they would artificially increase the number of nest boxes
 
 # EDI
 

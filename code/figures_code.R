@@ -98,6 +98,15 @@ ggplot(blutidf_3yo, aes(suc)) +
   facet_wrap(~ yo) +
   scale_x_continuous(breaks=seq(0,13,1)) +
   theme(axis.title = element_text(size = 14), axis.text = element_text(size = 12)) 
+
+# Fledgeling success by age at last reproductive attempt #
+ggplot(blutidf_3yo, aes(suc)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
+  labs(x = "Number of chicks fledged successfully", y = "Frequency") +
+  theme_bw() +
+  facet_wrap(~ w) +
+  scale_x_continuous(breaks=seq(0,13,1)) +
+  theme(axis.title = element_text(size = 14), axis.text = element_text(size = 12)) 
   
 # Overall clutch size # 
 ggplot(blutidf, aes(cs)) +
@@ -120,9 +129,18 @@ ggplot(blutidf_3yo, aes(cs)) +
   geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
   labs(x = "Clutch size", y = "Frequency") +
   theme_bw() +
-  facet_wrap(~ yo) +
+  facet_wrap(~ w) +
   scale_x_continuous(breaks=seq(0,15,1)) +
   theme(axis.title = element_text(size = 14), axis.text = element_text(size = 12))
+
+# Clutch size by age at last reproductive attempt #
+ggplot(blutidf_3yo, aes(cs)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
+  labs(x = "Number of chicks fledged successfully", y = "Frequency") +
+  theme_bw() +
+  facet_wrap(~ w) +
+  scale_x_continuous(breaks=seq(0,13,1)) +
+  theme(axis.title = element_text(size = 14), axis.text = element_text(size = 12)) 
 
 # Overall first egg lay date # 
 ggplot(blutidf, aes(fed)) +
@@ -149,13 +167,22 @@ ggplot(blutidf_3yo, aes(fed)) +
   scale_x_continuous(breaks=seq(90,200,5)) +
   theme(axis.title = element_text(size = 14), axis.text = element_text(size = 12))
 
+# Fledgeling success by age at last reproductive attempt #
+ggplot(blutidf_3yo, aes(fed)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
+  labs(x = "Number of chicks fledged successfully", y = "Frequency") +
+  theme_bw() +
+  facet_wrap(~ w) +
+  scale_x_continuous(breaks=seq(0,13,1)) +
+  theme(axis.title = element_text(size = 14), axis.text = element_text(size = 12)) 
+
 
 ### Breeding traits per year (raw data) ###
 
 # Suc per year
 ggplot(blutidf_3yo, aes(x=year, y=suc)) +
-  geom_point(size=2) +
-  labs(x = "Years", y = "Mean number of chicks fledged successfully") +
+  geom_jitter(size=2, alpha=0.25, colour = "#248fc9") +
+  labs(x = "Years", y = "Number of chicks fledged successfully") +
   theme_bw() +
   scale_x_continuous(breaks=seq(2014,2024,1)) +
   scale_y_continuous(breaks=seq(0,16,1), limits = c(0, 16)) +
@@ -167,18 +194,19 @@ ggplot(blutidf_3yo, aes(x=year, y=suc)) +
 
 # Fed per year
 ggplot(bluti2, aes(x=year, y=fed)) +
-  geom_point(size=2) +
-  labs(x = "Years", y = "Mean number of chicks fledged successfully") +
+  geom_jitter(size=2, alpha=0.25, colour = "#248fc9") +
+  labs(x = "Years", y = "First egg lay date (1st Jan = 1)") +
   theme_bw() +
   scale_x_continuous(breaks=seq(2014,2024,1)) +
   theme(axis.title = element_text(size = 14), 
         axis.text = element_text(size = 12),
         axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
         axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+#  pay attention to 2020
 
 # Cs per year
 ggplot(bluti2, aes(x=year, y=cs)) +
-  geom_point(size=2) +
+  geom_jitter(size=2, alpha=0.25, colour = "#248fc9") +
   labs(x = "Years", y = "Clutch size") +
   theme_bw() +
   scale_x_continuous(breaks=seq(2014,2024,1)) +
@@ -186,6 +214,8 @@ ggplot(bluti2, aes(x=year, y=cs)) +
         axis.text = element_text(size = 12),
         axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
         axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+
 
 ### Raw data per age group ###
 
@@ -212,7 +242,6 @@ bluti_cs_summary <- blutidf_3yo %>%
   as.data.frame()
 
 # Suc per age (noisy raw data plus mean+sd)
-
 grid.arrange(plot1, plot2, ..., ncol=3, nrow = 3)
 plot1 <- ggplot() +
   geom_jitter(data=blutidf_3yo, aes(x=yo, y=suc), size=2, alpha=0.25, colour = "#248fc9") +
@@ -514,8 +543,15 @@ ggplot(bluti2_red,aes(x=year, fill=factor(y_old))) +
   scale_y_continuous(breaks=seq(0,300,20), expand=expansion(mult=c(0,0.1)))
 
 
+
+### Site and environment ###
+
+
+
 # Nestboxes per site
 sites <- read.csv("data/site_detailsII.csv")
+
+reorder(df_ex$name_age, df_ex$age, FUN = mean)
 
 ggplot(sites, aes(x=site, y=Current.Boxes, fill = site)) +
   geom_col(colour = "black") +
@@ -524,3 +560,65 @@ ggplot(sites, aes(x=site, y=Current.Boxes, fill = site)) +
   guides(fill="none") +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
   scale_y_continuous(breaks=seq(0,10,1), expand = expansion(mult = c(0, .1)))
+
+# Average occupancy per site
+
+ggplot(environment, aes(x=reorder(sites, latitude), y=occupancy)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Sites of study", y = "Average occupancy rate (2014-2021)") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1),
+        axis.title = element_text(size = 13), 
+        axis.text = element_text(size = 11),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+# Elevation per site
+
+ggplot(environment, aes(x=reorder(sites, latitude), y=elevation)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Sites of study", y = "Average site elevation") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1),
+        axis.title = element_text(size = 13), 
+        axis.text = element_text(size = 11),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+# Absolute number of oaks per site
+
+ggplot(environment, aes(x=reorder(sites, latitude), y=TOTAL_oak)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Sites of study", y = "Absolute number of oaks per site") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1),
+        axis.title = element_text(size = 13), 
+        axis.text = element_text(size = 11),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+
+#########################################
+### Breeding traits vs. foliage score ###
+#########################################
+
+# First egg lay date
+
+fed_df <- blutidf_3yo %>% filter(!is.na(fed))
+
+fed_df$total_fs <- habitat_foliage_scores[match(fed_df$site, habitat_foliage_scores$Site),"Total"]
+
+ggplot(fed_df, aes(x=total_fs, y=fed, col=as.factor(year))) +
+  geom_point(alpha=0.25) +
+  theme_bw() +
+  labs(x = "Total foliage score", y = "First egg lay date (1 = 1st Jan)") +
+  guides(col=guide_legend(title="Year")) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(margin = unit(c(1, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) 
+
+
+# Clutch size
+

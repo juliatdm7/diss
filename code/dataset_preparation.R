@@ -26,7 +26,7 @@ adults <- alladults %>% filter(season != "winter", sex == "F")  # we will remove
 blutiadults <- adults %>% select(ring, year, site, box, age)  # finally, we select the columns that we will use
 
 # Rearranging datasets in ascending order of years, site and nestboxes
-level_order <- c("EDI", "RSY", "FOF", "BAD", "LVN", "DOW", "GLF", "SER", "MCH", "PTH", "STY", "BIR", "DUN", "BLG", "PIT", "KCK", "KCZ", "BLA", "CAL", "DNM", "DNC", "DNS", "DLW", "CRU", "NEW", "HWP", "INS", "FSH", "RTH", "AVI", "AVN", "SLS", "TOM", "DAV", "ART", "MUN", "FOU", "ALN", "DEL", "TAI", "SPD", "OSP", "DOR") 
+level_order <- c("EDI", "RSY", "FOF", "BAD", "LVN", "DOW", "GLF", "SER", "MCH", "PTH", "STY", "BIR", "DUN", "BLG", "PIT", "KCK", "KCZ", "BLA", "CAL", "DNM", "DNC", "DNS", "DLW", "CRU", "NEW", "HWP", "INS", "FSH", "RTH", "AVI", "AVN", "CAR", "SLS", "TOM", "DAV", "ART", "MUN", "FOU", "ALN", "DEL", "TAI", "SPD", "OSP", "DOR")
 blutiphen <- blutiphen %>% arrange(year, factor(site, levels = level_order), box)  
 blutiadults <- blutiadults %>% arrange(year, factor(site, levels = level_order), box)  
 
@@ -210,6 +210,13 @@ for (i in 1:nrow(blutidf)) {
 }
 
 
+# I think it would be interesting to add a column in which fledgeling success is a proportion (proportion of eggs laid that were successfully fledged). 
+# This proportion will take the complete clutch into account, rather than the number of hatched eggs. However, it would be potentially more accurate to use the number of hatched eggs as base (maybe substracting the number of unhatched eggs found in V1 to the clutch size)
+
+blutidf$suc_prop <- blutidf$suc/blutidf$cs
+
+blutidf <- blutidf %>% relocate(suc_prop, .before=hatchyear)
+
 ### Creating a database for recordings of females that are only between 1 and 3 years old
 
 blutidf_3yo <- blutidf[which(blutidf$yo <= 3),]
@@ -222,3 +229,44 @@ count(distinct(blutidf_3yo, ring, .keep_all = T))  # 1131 females instead of 113
 #write.csv(blutidf_3yo, "data/blutidf_3yo.csv")
 #write.xlsx(blutidf_3yo, "data/blutidf_3yo.xlsx")  # final database (with observations where females are only up to 3 years old)
 
+population <- blutidf_3yo %>% 
+  count(year,yo) %>%
+  pivot_wider(names_from=year,values_from=c(n))
+
+mean(blutidf$w)
+
+#The number of observations of 3 years-old individuals per year is quite low overall, and it's almost always less than 20% of the population (2022 is the sole exception); birds aged 3 years old usually represent between 10 and 15% of the total of the (female) population.
+
+
+
+### Creating separate data frames for each response variable ###
+
+fed_df <- blutidf_3yo %>% filter(!is.na(fed))
+
+nrow(fed_df) # In the separate dataset for fed there are 1221 observations...
+
+length(unique(fed_df$ring)) #... and 955 unique (female) bird rings
+
+#write.csv(fed_df, "data/fed_df.csv")
+
+cs_df <- blutidf_3yo %>% filter(!is.na(cs))
+
+nrow(cs_df)  # In the separate dataset for cs there are 1469 observations...
+
+length(unique(cs_df$ring))  #... and 1102 unique (female) bird rings
+
+#write.csv(cs_df, "data/cs_df.csv")
+
+suc_df <- blutidf_3yo %>% filter(!is.na(suc))
+
+nrow(suc_df)  # In the separate dataset for suc there are 1303 observations...
+
+length(unique(suc_df$ring))  #... and 1008 unique (female) bird rings
+
+#write.csv(suc_df, "data/suc_df.csv")
+
+
+mean(cs_df[which(cs_df$year == 2020),"cs"])
+
+View(fed_df[which(fed_df$w == 3),])
+unique(fed_df[which(fed_df$w == 3),"ring"])

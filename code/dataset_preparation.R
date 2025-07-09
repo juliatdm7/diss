@@ -89,6 +89,28 @@ nrow(bluti2)  # 1677 observations
 
 length(unique(bluti2$ring))  # 1148 females
 
+### Brief dataset exploration ###
+
+unique(blutidf_3yo$year)  # Data from years 2014-2024
+blutidf_3yo %>%
+  count(year) %>%
+  filter(n > 1)  # Number of cases/recordings per years
+
+length(unique(blutidf_3yo$ring))  # We have recordings of a total of 1150 different female birds across the years, 1147 when we treat cases where suc < 0 as NAs 
+
+nr_birds <- blutidf %>%
+  count(ring)  # storing how many times we have recorded each female (including duplicates)
+mean(nr_birds$n)  # On average, we have recorded 1.460801 breeding attempts of each female. 
+# Most females only breed one year (or we only have one recording on average of each female; maybe they've had more but we haven't noticed)
+
+max(nr_birds[, 2])  # the maximum number of breeding attempts recorded for the same female is 7...
+nr_birds[which(nr_birds$n == max(nr_birds[, 2])),"ring"]  # ...and it's of female S921907
+
+str(blutidf)
+blutidf$suc <- as.numeric(blutidf$suc)
+
+
+
 ### Estimating birds' age ###
 
 # Finding individuals recorded at age 5 (code is modified from code provided by ChatGPT)
@@ -226,6 +248,13 @@ mean(blutidf$w)  # females live on average 2-3 years old on this study system
 
 
 ### Creating separate data frames for each response variable ###
+
+length(which(is.na(blutidf_3yo$fed)))  # There are 305 observations for which we have no first egg lay date recordings
+
+blutidf_3yo[which(is.na(blutidf_3yo$fed)),]  
+
+# Quite a few of these belong to sites that are visited less often (most sites in the Northern part of the transect, starting with HWP and until DOR, as well as sites in the southern transect that after a certain year started to receive visits less often: BAD, DLW and DUN) and, therefore, estimation of first egg lay date based on the number of eggs present in the nest box once its inspected is less accurate. 
+# However, and potentially more relevant, most of these fed-lacking observations belong to the year 2020, year in which the sanitary emergency caused by the COVID-19 pandemic provided an obstacle to conduct fieldwork following the standard protocol.
 
 fed_df <- blutidf_3yo %>% filter(!is.na(fed))
 

@@ -201,7 +201,7 @@ grid.arrange(plot1, plot2, plot3, plot4, plot5, plot6, ncol = 3, nrow = 2)
 
 # Figure 6
 
-# 1. First egg lay date
+## 1. First egg lay date
 
 fed_age <- fed_df %>% dplyr::count(yo)
 
@@ -246,7 +246,7 @@ fedplot2 <- ggplot(fed_uq_rings, aes(x=w)) +
 grid.arrange(fedplot1, fedplot2, ncol=2, nrow = 1)
 
 
-# 2. Clutch size
+## 2. Clutch size
 
 cs_age <- cs_df %>% dplyr::count(yo)
 
@@ -291,7 +291,7 @@ grid.arrange(csplot1, csplot2, ncol=2, nrow = 1)
 
 
 
-# 3. Fledgeling success
+## 3. Fledgeling success
 
 suc_age <- suc_df %>% dplyr::count(yo)
 
@@ -336,3 +336,270 @@ sucplot2 <- ggplot(suc_uq_rings, aes(x=w)) +
 
 grid.arrange(sucplot1, sucplot2, ncol=2, nrow = 1)
 
+
+
+# Figure 7
+
+fed_summary <- summarySE(fed_df, measurevar='fed', groupvars='yo')
+
+pred_fed_1 <- plot(ggpredict(fed_model, terms = "yo"), show_title = F, colors = c("#248fc9")) +
+  geom_jitter(data=fed_df, aes(x=yo, y=fed), size=1.8, alpha=0.25, colour = "#838282") +
+  geom_linerange(data=fed_summary, aes(x=yo, y=fed, ymin=fed-ci, ymax=fed+ci), linewidth = 0.6) +
+  geom_point(data=fed_summary, aes(x=yo, y=fed), colour = "black", size = 2, alpha = 1) + 
+  labs(x = "Age", y = "First egg lay date (1st Jan = 1)") +
+  theme_bw() +
+  scale_y_continuous(breaks=seq(100,150,10), limits = c(100,140)) +
+  scale_x_continuous(breaks=seq(1,3,1)) +
+  theme(axis.title = element_text(size = 12), 
+        axis.text = element_text(size = 10),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))  # showing data
+
+fed_summary <- summarySE(fed_df, measurevar='fed', groupvars='w')
+
+pred_fed_2 <- plot(ggpredict(fed_model, terms = "w"), show_title = F, colors = "#248fc9") + 
+  geom_jitter(data=fed_df, aes(x=w, y=fed), size=1.8, alpha=0.25, colour = "#838282") +
+  geom_linerange(data=fed_summary, aes(x=w, y=fed, ymin=fed-ci, ymax=fed+ci), linewidth = 0.6, colour = "black") +
+  geom_point(data=fed_summary, aes(x=w, y=fed), colour = "black", size = 2, alpha = 1) + 
+  labs(x = "Age at last reproduction", y = "First egg lay date (1st Jan = 1)") +
+  theme_bw() +
+  scale_y_continuous(breaks=seq(100,150,10), limits = c(100,140)) +
+  scale_x_continuous(breaks=seq(1,8,1)) +
+  theme(axis.title = element_text(size = 12), 
+        axis.text = element_text(size = 10),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+fed_summary <- summarySE(fed_df, measurevar='fed', groupvars='yo')
+
+pred_fed_4 <- plot(ggpredict(fed_model, terms = c("yo", "total_FS [24.9, 114.5]")), show_data = T, jitter = T, show_title = F, colors = c("red", "#11a821")) +
+  labs(x = "Age", y = "First egg lay date (1st Jan = 1)") +
+  theme_bw() +
+  scale_y_continuous(breaks=seq(90,150,5), limits = c(100, 140)) +
+  scale_x_continuous(breaks=seq(1,3,1)) +
+  guides(col="none") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")),
+        legend.title = element_text(size = 9),
+        legend.text = element_text(size = 8))  # slight different in slope but, again, it's important to remember that said slopes were NOT significant 
+
+qq <- ggplot_build(pred_fed_4)
+
+qq$data[[1]]$colour <- "#838282"
+
+plot(ggplot_gtable(qq))
+
+pred_fed_5 <- plot(ggpredict(fed_model, terms = c("w", "total_FS [24.9, 114.5]")), show_title = F, show_data = T, jitter = T, colors = c("red", "#11a821")) + # when I don't plot the data, the function "zooms in"
+  labs(x = "Age at last reproduction", y = "First egg lay date (1st Jan = 1)") +
+  theme_bw() +
+  scale_y_continuous(breaks=seq(90,150,10), limits = c(100,140)) +
+  scale_x_continuous(breaks=seq(1,8,1)) +
+  guides(col="none") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")),
+        legend.title = element_text(size = 9),
+        legend.text = element_text(size = 8))  # this clearly shows that we have a lot of uncertainty as ALR increases
+
+qq <- ggplot_build(pred_fed_5)
+
+qq$data[[1]]$colour <- "#838282"
+
+plot(ggplot_gtable(qq))
+
+
+
+# Figure 8
+
+cs_summary <- summarySE(cs_df, measurevar='cs', groupvars='yo')
+
+pred_cs_1 <- plot(ggpredict(cs_model_III, terms = "yo"), show_title = F, colors = "#248fc9") + 
+  geom_jitter(data=cs_df, aes(x=yo, y=cs), size=1.8, alpha=0.25, colour = "#838282") +
+  geom_linerange(data=cs_summary, aes(x=yo, y=cs, ymin=cs-ci, ymax=cs+ci), linewidth = 0.6, colour = "black") +
+  geom_point(data=cs_summary, aes(x=yo, y=cs), colour = "black", size = 2, alpha = 1) + 
+  labs(x = "Age", y = "Clutch size") +
+  theme_bw() +
+  scale_y_continuous(breaks=seq(1,15,2)) +
+  scale_x_continuous(breaks=seq(1,3,1)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+cs_summary <- summarySE(cs_df, measurevar='cs', groupvars='w')
+
+pred_cs_2 <- plot(ggpredict(cs_model, terms = "w"), show_title = F, colors = "#248fc9") + 
+  geom_jitter(data=cs_df, aes(x=w, y=cs), size=1.8, alpha=0.25, colour = "#838282") +
+  geom_linerange(data=cs_summary, aes(x=w, y=cs, ymin=cs-ci, ymax=cs+ci), linewidth = 0.6, colour = "black") +
+  geom_point(data=cs_summary, aes(x=w, y=cs), colour = "black", size = 2, alpha = 1) + 
+  labs(x = "Age at last reproduction", y = "Clutch size") +
+  theme_bw() +
+  scale_y_continuous(breaks = seq(1,15,2)) +
+  scale_x_continuous(breaks=seq(1,8,1)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+cs_summary <- summarySE(cs_df, measurevar='cs', groupvars='yo')
+
+pred_cs_4 <- plot(ggpredict(cs_model, terms = c("yo", "total_FS [24.925, 114.5156]")), show_title = F, show_data = T, jitter = T, colors = c("red", "#11a821")) + 
+  labs(x = "Age", y = "Clutch size") +
+  theme_bw() +
+  scale_y_continuous(breaks=seq(1,14,1), limits = c(2,13)) +
+  scale_x_continuous(breaks=seq(1,3,1)) +
+  guides(col="none") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))  # slight different in slope but, again, it's important to remember that said slopes were NOT significant 
+
+qq <- ggplot_build(pred_cs_4)
+
+qq$data[[1]]$colour <- "#838282"
+
+plot(ggplot_gtable(qq))
+
+cs_summary <- summarySE(cs_df, measurevar='cs', groupvars='w')
+
+pred_cs_5 <- plot(ggpredict(cs_model, terms = c("w", "total_FS [24.925, 114.5156]")), show_title = F, show_data = T, jitter = T, colors = c("red", "#11a821")) + 
+  labs(x = "Age at last reproduction", y = "Clutch size") +
+  theme_bw() +
+  scale_y_continuous(breaks=seq(1,15,2), limits = c(2,13)) +
+  scale_x_continuous(breaks=seq(1,8,1)) +
+  guides(col="none") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))  # this clearly shows that we have a lot of uncertainty as ALR increases
+
+qq <- ggplot_build(pred_cs_5)
+
+qq$data[[1]]$colour <- "#838282"
+
+plot(ggplot_gtable(qq))
+
+grid.arrange(pred_cs_1, pred_cs_3, pred_cs_4, pred_cs_5, ncol=2, nrow = 2)
+
+
+
+# Figure 9
+
+suc_summary <- summarySE(suc_df, measurevar='suc', groupvars='yo')
+
+pred_suc_1 <- plot(ggpredict(suc_model, terms = "yo"), show_title = F, colors = "#248fc9") + 
+  geom_jitter(data=suc_df, aes(x=yo, y=suc), size=1.8, alpha=0.25, colour = "#838282") +
+  geom_linerange(data=suc_summary, aes(x=yo, y=suc, ymin=suc-ci, ymax=suc+ci), linewidth = 0.6, colour = "black") +
+  geom_point(data=suc_summary, aes(x=yo, y=suc), colour = "black", size = 2, alpha = 1) + 
+  labs(x = "Age", y = "Number of fledgelings") +
+  theme_bw() +
+  scale_y_continuous(breaks = seq(0,15,2)) +
+  scale_x_continuous(breaks=seq(1,3,1)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))  # not showing data
+
+suc_summary <- summarySE(suc_df, measurevar='suc', groupvars='w')
+
+pred_suc_2 <- plot(ggpredict(suc_model, terms = "w"), show_title = F, colors = "#248fc9") + 
+  geom_jitter(data=suc_df, aes(x=w, y=suc), size=1.8, alpha=0.25, colour = "#838282") +
+  geom_linerange(data=suc_summary, aes(x=w, y=suc, ymin=suc-ci, ymax=suc+ci), linewidth = 0.6, colour = "black") +
+  geom_point(data=suc_summary, aes(x=w, y=suc), colour = "black", size = 2, alpha = 1) + 
+  labs(x = "Age at last reproduction", y = "Number of fledgelings") +
+  theme_bw() +
+  scale_y_continuous(breaks = seq(0,14,2)) +
+  scale_x_continuous(breaks=seq(1,8,1)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+suc_summary <- summarySE(suc_df, measurevar='suc', groupvars='yo')
+
+pred_suc_4 <- plot(ggpredict(suc_model, terms = c("yo", "total_FS [24.925, 114.5156]")), show_title = F, show_data = T, jitter = T, colors = c("red", "#11a821")) + 
+  labs(x = "Age", y = "Number of fledgelings") +
+  theme_bw() +
+  scale_y_continuous(breaks=seq(0,15,2), limits = c(0,12)) +
+  scale_x_continuous(breaks=seq(1,8,1)) +
+  guides(col="none") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+qq <- ggplot_build(pred_suc_4)
+
+qq$data[[1]]$colour <- "#838282"
+
+plot(ggplot_gtable(qq))
+
+suc_summary <- summarySE(suc_df, measurevar='suc', groupvars='w')
+
+pred_suc_5 <- plot(ggpredict(suc_model, terms = c("w", "total_FS [24.925, 114.5156]")), show_title = F, show_data = T, jitter = T, colors = c("red", "#11a821")) + 
+  labs(x = "Age at last reproduction", y = "Number of fledgelings") +
+  theme_bw() +
+  scale_y_continuous(breaks=seq(0,15,2), limits = c(0,12)) +
+  scale_x_continuous(breaks=seq(1,8,1)) +
+  guides(col="none") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+qq <- ggplot_build(pred_suc_5)
+
+qq$data[[1]]$colour <- "#838282"
+
+plot(ggplot_gtable(qq))
+
+
+
+# Figure 10
+
+fed_summary <- summarySE(fed_df, measurevar='fed', groupvars='total_FS')
+
+pred_fed_3 <- plot(ggpredict(fed_model, terms = "total_FS"), show_title = F, colors = "#248fc9") + 
+  geom_jitter(data=fed_df, aes(x=total_FS, y=fed), size=1.8, alpha=0.25, colour = "#838282") +
+  geom_linerange(data=fed_summary, aes(x=total_FS, y=fed, ymin=fed-ci, ymax=fed+ci), linewidth = 0.6, colour = "black") +
+  geom_point(data=fed_summary, aes(x=total_FS, y=fed), colour = "black", size = 2, alpha = 1) + 
+  labs(x = "Foliage score", y = "First egg lay date (1st Jan = 1)") +
+  theme_bw() +
+  theme(axis.title = element_text(size = 13), 
+        axis.text = element_text(size = 11),
+        axis.title.x = element_text(margin = unit(c(3, 1, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")),
+        plot.margin = margin(0.2,0.8,0.2,0.2, "cm"))
+
+cs_summary <- summarySE(cs_df, measurevar='cs', groupvars='total_FS')
+
+pred_cs_3 <- plot(ggpredict(cs_model, terms = "total_FS"), show_title = F, colors = "#248fc9") + 
+  geom_jitter(data=cs_df, aes(x=total_FS, y=cs), size=1.8, alpha=0.25, colour = "#838282") +
+  geom_linerange(data=cs_summary, aes(x=total_FS, y=cs, ymin=cs-ci, ymax=cs+ci), linewidth = 0.6, colour = "black") +
+  geom_point(data=cs_summary, aes(x=total_FS, y=cs), colour = "black", size = 2, alpha = 1) + 
+  labs(x = "Foliage score", y = "Clutch size") +
+  theme_bw() +
+  scale_y_continuous(breaks=seq(1,15,2)) +
+  theme(axis.title = element_text(size = 13), 
+        axis.text = element_text(size = 11),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")),
+        plot.margin = margin(0.2,0.8,0.2,0.2, "cm"))
+
+suc_summary <- summarySE(suc_df, measurevar='suc', groupvars='total_FS')
+
+pred_suc_3 <- plot(ggpredict(suc_model, terms = "total_FS"), show_title = F, colors = "#248fc9") + 
+  geom_jitter(data=suc_df, aes(x=total_FS, y=suc), size=1.8, alpha=0.25, colour = "#838282") +
+  geom_linerange(data=suc_summary, aes(x=total_FS, y=suc, ymin=suc-ci, ymax=suc+ci), linewidth = 0.6, colour = "black") +
+  geom_point(data=suc_summary, aes(x=total_FS, y=suc), colour = "black", size = 2, alpha = 1) + 
+  labs(x = "Foliage score", y = "Number of fledgelings") +
+  theme_bw() +
+  scale_y_continuous(breaks = seq(0,15,2)) +
+  theme(axis.title = element_text(size = 13), 
+        axis.text = element_text(size = 11),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")),
+        plot.margin = margin(0.2,0.8,0.2,0.2, "cm"))

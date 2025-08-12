@@ -187,4 +187,4 @@ testDispersion(suc_simulationOutput)  # underdispersion
 
 testOutliers(suc_simulationOutput)
 
-# There's underdispersion, but when there's no model overfitting, consensus isthat it's okay to not correct for it.
+# There's underdispersion, but when there's no model overfitting, consensus is that it's okay to not correct for it.

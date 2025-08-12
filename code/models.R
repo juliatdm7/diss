@@ -100,7 +100,7 @@ summary(suc_model)
 #########################
 
 
-# First egg lay date
+## First egg lay date ##
 
 fed_simulationOutput <- simulateResiduals(fittedModel = fed_model, plot = F)  # this DHARMa function calculates randomized quantile residuals
 
@@ -131,3 +131,60 @@ testDispersion(fed_simulationOutput)
 # Although DHARMa flags violation of Normality and heterogeneity, these deviations are within the expectation given the type of the data.
 
 
+
+## Clutch size ##
+
+cs_simulationOutput <- simulateResiduals(fittedModel = cs_model, plot = F)  # randomized quantile residuals
+
+cs_res <- as.data.frame(residuals(cs_simulationOutput)) %>% rename(res = "residuals(cs_simulationOutput)")  # extracting residuals
+
+hist(cs_res$res, main = "Distribution of calculated residuals", xlab = "Calculated (scaled) residuals", col = "#248fc9")  # plotting residuals
+
+plot(cs_simulationOutput)  
+
+plotResiduals(cs_simulationOutput, form = cs_df$yo)  
+
+plotResiduals(cs_simulationOutput, form = cs_df$w)
+
+plotResiduals(cs_simulationOutput, form = cs_df$total_FS)
+
+# Using supporting goodness-of-fit tests
+
+testUniformity(cs_simulationOutput, alternative = "two.sided", plot = T)
+
+testQuantiles(cs_simulationOutput)
+
+testDispersion(cs_simulationOutput)
+
+testOutliers(cs_simulationOutput)
+
+# DHARMa flags some outliers, but deviations seem to be within expectations
+
+
+## Number of fledgelings ##
+
+suc_simulationOutput <- simulateResiduals(fittedModel = suc_model, plot = F)  # randomized quantile residuals
+
+suc_res <- as.data.frame(residuals(suc_simulationOutput)) %>% rename(res = "residuals(suc_simulationOutput)")  # extracting residuals
+
+hist(suc_res$res, main = "Distribution of calculated residuals", xlab = "Calculated (scaled) residuals", col = "#248fc9")  # plotting residuals
+
+plot(suc_simulationOutput)  
+
+plotResiduals(suc_simulationOutput, form = suc_df$yo)  
+
+plotResiduals(suc_simulationOutput, form = suc_df$w)
+
+plotResiduals(suc_simulationOutput, form = suc_df$total_FS)
+
+# Using supporting goodness-of-fit tests
+
+testUniformity(suc_simulationOutput, alternative = "two.sided", plot = T)
+
+testQuantiles(suc_simulationOutput)
+
+testDispersion(suc_simulationOutput)  # underdispersion
+
+testOutliers(suc_simulationOutput)
+
+# There's underdispersion, but when there's no model overfitting, consensus isthat it's okay to not correct for it.

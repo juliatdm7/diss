@@ -5,7 +5,7 @@
 
 library(dplyr)
 
-allbirdphen <- read.csv("data/Bird_PhenologyII.csv")
+allbirdphen <- read.csv("data/Bird_Phenology_2025.csv")
 birdphen <- allbirdphen[-which(allbirdphen$X2brood.relay == 1),]  # removing relays because they would artificially increase the number of nest boxes
 occupancy <- data.frame(site = rep(c("EDI", "RSY", "FOF", "BAD", "LVN", "DOW", "GLF", "SER", "MCH", "PTH", "STY", "BIR", "DUN", "BLG", "PIT", "KCK", "KCZ", "BLA", "CAL", "DNM", "DNC", "DNS", "DLW", "CRU", "NEW", "HWP", "INS", "FSH", "RTH", "AVI", "AVN", "CAR", "SLS", "TOM", "DAV", "ART", "MUN", "FOU", "ALN", "DEL", "TAI", "SPD", "OSP", "DOR"), each = 11), year = rep(2014:2024, 44), total_boxes = 0, occ_boxes = 0)
 
@@ -125,6 +125,8 @@ environment[which(environment$sites =="OSP"), "new_site_occ"] <- mean(na.omit(oc
 environment[which(environment$sites =="DOR"), "new_site_occ"] <- mean(na.omit(occupancy[which(occupancy$site == "DOR"), "prop_occ"]))  
 
 environment$old_occ <- site_occupancy$occupancy  # Checking this to compare how different old estimated occupation vs. new estimated occupation are
+
+environment <- environment[,-5]
 
 ################################
 ### UNUSED CODE. DO NOT RUN. ###

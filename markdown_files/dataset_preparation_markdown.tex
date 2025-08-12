@@ -1,0 +1,359 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Data preparation},
+  pdfauthor={Julia},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Data preparation}
+\author{Julia}
+\date{2025-08-12}
+
+\begin{document}
+\maketitle
+
+\subsection{Brief comment}\label{brief-comment}
+
+This markdown document was created to briefly show the outputs of the
+code included in the \texttt{dataset\_preparation.R} as the full data
+will not be uploaded for confidentiality reasons. Therefore, this file
+will have the exact same code with small modifications to show that each
+step is doing.
+
+\subsubsection{1. Loading packages and baseline data
+sets}\label{loading-packages-and-baseline-data-sets}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Loading packages}
+
+\FunctionTok{library}\NormalTok{(dplyr)  }
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Adjuntando el paquete: 'dplyr'
+\end{verbatim}
+
+\begin{verbatim}
+## The following objects are masked from 'package:stats':
+## 
+##     filter, lag
+\end{verbatim}
+
+\begin{verbatim}
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(tidyverse)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: package 'ggplot2' was built under R version 4.4.3
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: package 'purrr' was built under R version 4.4.3
+\end{verbatim}
+
+\begin{verbatim}
+## -- Attaching core tidyverse packages ------------------------ tidyverse 2.0.0 --
+## v forcats   1.0.0     v readr     2.1.5
+## v ggplot2   3.5.2     v stringr   1.5.1
+## v lubridate 1.9.4     v tibble    3.2.1
+## v purrr     1.0.4     v tidyr     1.3.1
+\end{verbatim}
+
+\begin{verbatim}
+## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
+## x dplyr::filter() masks stats::filter()
+## x dplyr::lag()    masks stats::lag()
+## i Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Loading baseline data sets}
+
+\NormalTok{alladults }\OtherTok{\textless{}{-}} \FunctionTok{read.csv}\NormalTok{(}\StringTok{"C:/Users/julia/OneDrive {-} University of Edinburgh/EEB\_MSc\_UEd/Dissertation/diss/data/Adults\_2025.csv"}\NormalTok{)  }\CommentTok{\# loading all adult blue tits data}
+\FunctionTok{as\_tibble}\NormalTok{(alladults)  }\CommentTok{\# visualising first rows of data}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 3,928 x 16
+##    ring     year site    box   age sex    wing tarsus  mass  date time    ringer
+##    <chr>   <int> <chr> <int> <int> <chr> <dbl>  <dbl> <dbl> <dbl> <chr>   <chr> 
+##  1 Z632906  2015 ALN       3     6 F        59     NA  10.6   161 "13:45" IBC   
+##  2 Z632905  2015 ALN       3     6 M        66     NA  10.6   161 "13:45" IBC   
+##  3 Z632133  2015 ALN       4     6 F        62     NA  10.2   151 ""      JDS   
+##  4 Z632134  2015 ALN       4     6 M        68     NA  11.9   151 ""      JDS   
+##  5 Z632769  2015 ALN       5     5 F        63     NA  11.4   157 "16:00" JDS   
+##  6 Z632770  2015 ALN       5     5 M        65     NA  10.5   157 "16:00" JDS   
+##  7 Z632133  2016 ALN       2     6 F        63     NA  10.3   140 "15:30" JDS   
+##  8 Z632838  2016 ALN       5     6 F        64     NA  10.7   148 "16:30" JDS   
+##  9 Z632855  2016 ALN       6     6 F        60     NA  10.2   156 "14:10" IBC   
+## 10 Z632856  2016 ALN       6     6 M        65     NA  10.5   156 "14:10" IBC   
+## # i 3,918 more rows
+## # i 4 more variables: season <chr>, history <int>, notes <chr>, catching <chr>
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{allbirdphen }\OtherTok{\textless{}{-}} \FunctionTok{read.csv}\NormalTok{(}\StringTok{"C:/Users/julia/OneDrive {-} University of Edinburgh/EEB\_MSc\_UEd/Dissertation/diss/data/Bird\_Phenology\_2025.csv"}\NormalTok{)  }\CommentTok{\# loading all phenology data}
+\FunctionTok{as\_tibble}\NormalTok{(allbirdphen)  }\CommentTok{\# visualising first rows of data}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 3,594 x 51
+##     year site    box preadtor_proof species visit.frequency moss  n1    nl   
+##    <int> <chr> <int> <chr>          <chr>   <chr>           <chr> <chr> <chr>
+##  1  2014 FOF       1 ""             "bluti" ""              ""    "98"  "106"
+##  2  2014 FOF       2 ""             "bluti" ""              ""    "118" "122"
+##  3  2014 FOF       3 ""             "bluti" ""              ""    "82"  "98" 
+##  4  2014 FOF       4 ""             "bluti" ""              ""    "90"  "106"
+##  5  2014 FOF       5 ""             "bluti" ""              ""    "98"  "108"
+##  6  2014 FOF       6 ""             "bluti" ""              ""    "98"  "102"
+##  7  2014 BAD       1 ""             "bluti" ""              ""    "96"  "106"
+##  8  2014 BAD       2 ""             ""      ""              ""    ""    ""   
+##  9  2014 BAD       3 ""             "bluti" ""              ""    "100" "106"
+## 10  2014 BAD       4 ""             ""      ""              ""    ""    ""   
+## # i 3,584 more rows
+## # i 42 more variables: latestfed <int>, latestcc <int>, fed <int>, cc <chr>,
+## #   cs <int>, lastnotinc <chr>, fki <int>, clutch.swap.treatment <chr>,
+## #   extra.eggs <int>, hd_1.45 <chr>, hatching_first_recorded <int>,
+## #   hatching <chr>, number.hatched <chr>, weight <chr>, av.weight <chr>,
+## #   time.of.day.for.hatch.weight <chr>, uhe <chr>, v1date <int>, v1alive <int>,
+## #   v1poo <int>, v1time <chr>, v1duration <chr>, v2date <int>, ...
+\end{verbatim}
+
+\subsubsection{2. Selecting variables that will be included in the final
+data
+sets}\label{selecting-variables-that-will-be-included-in-the-final-data-sets}
+
+Since we aim to study breeding success trends in blue tit populations
+across age groups and across sites, we will extract those variables that
+may be useful to study breeding success: first egg lay date
+(\texttt{fed}), clutch size ('cs`) and number of fledgelings (suc).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Selecting variables that will be useful for the project from the phenology data}
+
+\NormalTok{blutiphen }\OtherTok{\textless{}{-}}\NormalTok{ allbirdphen }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{filter}\NormalTok{(species }\SpecialCharTok{==} \StringTok{"bluti"}\NormalTok{)  }\CommentTok{\# first, we will select and extract cases that are of blue tits}
+
+\NormalTok{blutiphen }\OtherTok{\textless{}{-}}\NormalTok{ blutiphen }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{select}\NormalTok{(year, site, box, fed, cs, suc)  }\CommentTok{\# we also select columns that will help us collate both databases into one by identifying individuals (i.e.: year, site and box)}
+
+\FunctionTok{head}\NormalTok{(blutiphen)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##   year site box fed cs  suc
+## 1 2014  FOF   1 114 11   10
+## 2 2014  FOF   2 126  8    7
+## 3 2014  FOF   3 111  9    6
+## 4 2014  FOF   4 112 12 -999
+## 5 2014  FOF   5 115  8    6
+## 6 2014  FOF   6 109  7    5
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{nrow}\NormalTok{(allbirdphen)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 3594
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{nrow}\NormalTok{(blutiphen)  }\CommentTok{\# we end up with 2232 observations of breeding attempts}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 2232
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Selecting variables that will be useful for the project from the adult data}
+
+\NormalTok{adults }\OtherTok{\textless{}{-}}\NormalTok{ alladults }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{filter}\NormalTok{(season }\SpecialCharTok{!=} \StringTok{"winter"}\NormalTok{, sex }\SpecialCharTok{==} \StringTok{"F"}\NormalTok{)  }\CommentTok{\# we will remove all data coming from adults captured in the winter (as we may not have their corresponding breeding season data)}
+
+\FunctionTok{nrow}\NormalTok{(alladults)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 3928
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{nrow}\NormalTok{(adults)  }\CommentTok{\# after this filtering, we remove 2100 observations (of male birds and of winter recordings), and we have a total of 1828 recordings of female adults ringed and identified of which we should have breeding success data in blutiphen (or, at least, of most of them)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 1828
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{blutiadults }\OtherTok{\textless{}{-}}\NormalTok{ adults }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{select}\NormalTok{(ring, year, site, box, age)  }\CommentTok{\# finally, we select the columns that we will use}
+
+\CommentTok{\# Rearranging datasets in ascending order of years, site and nest boxes}
+
+\NormalTok{level\_order }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"EDI"}\NormalTok{, }\StringTok{"RSY"}\NormalTok{, }\StringTok{"FOF"}\NormalTok{, }\StringTok{"BAD"}\NormalTok{, }\StringTok{"LVN"}\NormalTok{, }\StringTok{"DOW"}\NormalTok{, }\StringTok{"GLF"}\NormalTok{, }\StringTok{"SER"}\NormalTok{, }\StringTok{"MCH"}\NormalTok{, }\StringTok{"PTH"}\NormalTok{, }\StringTok{"STY"}\NormalTok{, }\StringTok{"BIR"}\NormalTok{, }\StringTok{"DUN"}\NormalTok{, }\StringTok{"BLG"}\NormalTok{, }\StringTok{"PIT"}\NormalTok{, }\StringTok{"KCK"}\NormalTok{, }\StringTok{"KCZ"}\NormalTok{, }\StringTok{"BLA"}\NormalTok{, }\StringTok{"CAL"}\NormalTok{, }\StringTok{"DNM"}\NormalTok{, }\StringTok{"DNC"}\NormalTok{, }\StringTok{"DNS"}\NormalTok{, }\StringTok{"DLW"}\NormalTok{, }\StringTok{"CRU"}\NormalTok{, }\StringTok{"NEW"}\NormalTok{, }\StringTok{"HWP"}\NormalTok{, }\StringTok{"INS"}\NormalTok{, }\StringTok{"FSH"}\NormalTok{, }\StringTok{"RTH"}\NormalTok{, }\StringTok{"AVI"}\NormalTok{, }\StringTok{"AVN"}\NormalTok{, }\StringTok{"CAR"}\NormalTok{, }\StringTok{"SLS"}\NormalTok{, }\StringTok{"TOM"}\NormalTok{, }\StringTok{"DAV"}\NormalTok{, }\StringTok{"ART"}\NormalTok{, }\StringTok{"MUN"}\NormalTok{, }\StringTok{"FOU"}\NormalTok{, }\StringTok{"ALN"}\NormalTok{, }\StringTok{"DEL"}\NormalTok{, }\StringTok{"TAI"}\NormalTok{, }\StringTok{"SPD"}\NormalTok{, }\StringTok{"OSP"}\NormalTok{, }\StringTok{"DOR"}\NormalTok{)  }\CommentTok{\# here I\textquotesingle{}m creating a variable that stores sites\textquotesingle{} codes in order of increasing latitude}
+
+\NormalTok{blutiphen }\OtherTok{\textless{}{-}}\NormalTok{ blutiphen }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{arrange}\NormalTok{(year, }\FunctionTok{factor}\NormalTok{(site, }\AttributeTok{levels =}\NormalTok{ level\_order), box) }
+
+\NormalTok{blutiadults }\OtherTok{\textless{}{-}}\NormalTok{ blutiadults }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{arrange}\NormalTok{(year, }\FunctionTok{factor}\NormalTok{(site, }\AttributeTok{levels =}\NormalTok{ level\_order), box)  }
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{3. Creating a new database by collating blutiadults and
+blutiphen using columns ``year'', ``site'' and
+``box''}\label{creating-a-new-database-by-collating-blutiadults-and-blutiphen-using-columns-year-site-and-box}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# First, let\textquotesingle{}s find out if there are duplicates by "year", "site" and "box" in both datasets:}
+\NormalTok{blutiphen }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{count}\NormalTok{(year, site, box) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{filter}\NormalTok{(n }\SpecialCharTok{\textgreater{}} \DecValTok{1}\NormalTok{)  }\CommentTok{\# there seem to be 5 duplicates in blutiphen}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##   year site box n
+## 1 2019  AVN   2 2
+## 2 2019  EDI   1 2
+## 3 2019  MUN   1 2
+## 4 2019  SER   3 2
+## 5 2021  DOW   4 2
+\end{verbatim}
+
+These duplicates could be second broods (within the same breeding season
+and from the same female) or could be relays (if the first brood did not
+success):\\
+* 2019, AVN site, box 2 seems to be a relay as the first entry has no
+success input\\
+* 2019, EDI site, box 1 is also this case (except for the fact that in
+the first entry there is a 0 instead of a NA)\\
+* 2019, MUN site, box 1 also probably follows the re-lay case\\
+* \ldots as also probably does 2021 site DOW, nestbox 4
+
+\end{document}

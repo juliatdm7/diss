@@ -1,0 +1,1266 @@
+---
+title: "Data Exploration"
+author: "Julia"
+date: "2025-08-12"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+## Brief comment
+
+This markdown document was created to briefly show the outputs of the code included in the `data_exploration.R` as the full data will not be uploaded for confidentiality reasons. Therefore, this file will have the exact same code with small modifications to show that each step is doing.
+
+
+### 1. Loading packages and baseline data sets
+
+```{r}
+# Loading packages
+
+library(dplyr)  
+library(tidyverse)
+library(openxlsx)
+library(gridExtra)
+library(vegan)
+library(tidyr)
+library(ggplot2)
+
+# Loading baseline data sets
+
+alladults <- read.csv("C:/Users/julia/OneDrive - University of Edinburgh/EEB_MSc_UEd/Dissertation/diss/data/AdultsII.csv")  # loading complete adult blue tits data 
+allbirdphen <- read.csv("C:/Users/julia/OneDrive - University of Edinburgh/EEB_MSc_UEd/Dissertation/diss/data/Bird_PhenologyII.csv")  # loading complete phenology data 
+blutiphen <- allbirdphen %>% filter(species == "bluti")  # selecting and extracting blue tit cases
+blutidf <- read.csv("C:/Users/julia/OneDrive - University of Edinburgh/EEB_MSc_UEd/Dissertation/diss/data/blutidf_2025.csv")
+blutidf_3yo <- read.csv("C:/Users/julia/OneDrive - University of Edinburgh/EEB_MSc_UEd/Dissertation/diss/data/blutidf_3yo_2025.csv")
+fed_df <- read.csv("C:/Users/julia/OneDrive - University of Edinburgh/EEB_MSc_UEd/Dissertation/diss/data/fed_df_2025.csv")  # loading first egg lay date data
+cs_df <- read.csv("C:/Users/julia/OneDrive - University of Edinburgh/EEB_MSc_UEd/Dissertation/diss/data/cs_df_2025.csv")  # loading clutch size data
+suc_df <- read.csv("C:/Users/julia/OneDrive - University of Edinburgh/EEB_MSc_UEd/Dissertation/diss/data/suc_df_2025.csv")  # loading number of fledgelings data
+sites <- read.csv("C:/Users/julia/OneDrive - University of Edinburgh/EEB_MSc_UEd/Dissertation/diss/data/site_detailsII.csv")  # loading site-specific data
+habitat <- read.csv("C:/Users/julia/OneDrive - University of Edinburgh/EEB_MSc_UEd/Dissertation/diss/data/Habitats.csv")  # loading data used to calculate foliage score
+habitat_foliage_scores <- read.csv("C:/Users/julia/OneDrive - University of Edinburgh/EEB_MSc_UEd/Dissertation/diss/data/Habitat_SiteII.csv") # loading data on foliage score
+environment <- read.csv("C:/Users/julia/OneDrive - University of Edinburgh/EEB_MSc_UEd/Dissertation/diss/data/environment_2025.csv")  # loading environmental predictors
+caterpillars <- read.csv("C:/Users/julia/OneDrive - University of Edinburgh/EEB_MSc_UEd/Dissertation/diss/data/Lepidoptera_Abundance.csv")  # loading caterpillar data
+
+
+```
+
+
+
+### 2. Raw data and mean+se values for each breeding trait without capping observations based on age
+
+```{r}
+
+summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
+                      conf.interval=.95, .drop=TRUE) {
+  library(plyr)
+  length2 <- function (x, na.rm=FALSE) {
+    if (na.rm) sum(!is.na(x))
+    else       length(x)
+  }
+  
+  datac <- ddply(data, groupvars, .drop=.drop,
+                 .fun = function(xx, col) {
+                   c(N    = length2(xx[[col]], na.rm=na.rm),
+                     mean = mean   (xx[[col]], na.rm=na.rm),
+                     sd   = sd     (xx[[col]], na.rm=na.rm)
+                   )
+                 },
+                 measurevar
+  )
+  
+  datac <- plyr::rename(datac, c("mean" = measurevar))
+  datac$se <- datac$sd / sqrt(datac$N)
+  ciMult <- qt(conf.interval/2 + .5, datac$N-1)
+  datac$ci <- datac$se * ciMult
+  
+  return(datac)
+}
+
+```
+
+#### a) By age class:
+
+```{r, fig.align='center'}
+## AGE ##
+
+# First egg lay date
+
+nrow(fed_df)
+
+length(unique(fed_df$ring))
+
+fed_summary <- summarySE(fed_df, measurevar='fed', groupvars='yo')
+
+ggplot() +
+  geom_jitter(data=fed_df, aes(x=yo, y=fed), size=2, alpha=0.25, colour = "#248fc9") +
+  geom_errorbar(data=fed_summary, aes(x=yo, y=fed, ymin=fed-se, ymax=fed+se)) +
+  geom_point(data=fed_summary, aes(x=yo, y=fed), colour = "black", size = 2, alpha = 0.8) +
+  labs(x = "Age", y = "First egg lay date (1st Jan = 1)") +
+  theme_bw() +
+  scale_y_continuous(breaks=seq(90,200,5)) +
+  scale_x_continuous(breaks=seq(1,7,1)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+# Clutch size
+
+nrow(cs_df)
+
+length(unique(cs_df$ring))
+
+cs_summary <- summarySE(cs_df, measurevar='cs', groupvars='yo')
+
+ggplot() +
+  geom_jitter(data=cs_df, aes(x=yo, y=cs), size=2, alpha=0.25, colour = "#248fc9") +
+  geom_errorbar(data=cs_summary, aes(x=yo, y=cs, ymin=cs-se, ymax=cs+se)) +
+  geom_point(data=cs_summary, aes(x=yo, y=cs), colour = "black", size = 2, alpha = 0.8) +
+  labs(x = "Age", y = "Clutch size") +
+  theme_bw() +
+  scale_y_continuous(breaks=seq(1,15,2)) +
+  scale_x_continuous(breaks=seq(1,7,1)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+# Fledgeling success
+
+nrow(suc_df)
+
+length(unique(suc_df$ring))
+
+suc_summary <- summarySE(suc_df, measurevar='suc', groupvars='yo')
+
+ggplot() +
+  geom_jitter(data=suc_df, aes(x=yo, y=suc), size=2, alpha=0.25, colour = "#248fc9") +
+  geom_errorbar(data=suc_summary, aes(x=yo, y=suc, ymin=suc-se, ymax=suc+se)) +
+  geom_point(data=suc_summary, aes(x=yo, y=suc), colour = "black", size = 2, alpha = 0.8) +
+  labs(x = "Age", y = "Number of successfully fledged nestlings") +
+  theme_bw() +
+  scale_y_continuous(breaks=seq(0,15,2)) +
+  scale_x_continuous(breaks=seq(1,7,1)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+```
+
+
+#### b) By age at last reproduction class:
+
+```{r, fig.align='center'}
+# First egg lay date
+
+fed_summary <- summarySE(fed_df, measurevar='fed', groupvars='w')
+
+ggplot() +
+  geom_jitter(data=fed_df, aes(x=w, y=fed), size=2, alpha=0.25, colour = "#248fc9") +
+  geom_errorbar(data=fed_summary, aes(x=w, y=fed, ymin=fed-se, ymax=fed+se)) +
+  geom_point(data=fed_summary, aes(x=w, y=fed), colour = "black", size = 2, alpha = 0.8) +
+  labs(x = "Age at last reproduction", y = "First egg lay date (1st Jan = 1)") +
+  theme_bw() +
+  scale_y_continuous(breaks=seq(90,200,5)) +
+  scale_x_continuous(breaks=seq(1,7,1)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+# Clutch size
+
+cs_summary <- summarySE(cs_df, measurevar='cs', groupvars='w')
+
+ggplot() +
+  geom_jitter(data=cs_df, aes(x=w, y=cs), size=2, alpha=0.25, colour = "#248fc9") +
+  geom_errorbar(data=cs_summary, aes(x=w, y=cs, ymin=cs-se, ymax=cs+se)) +
+  geom_point(data=cs_summary, aes(x=w, y=cs), colour = "black", size = 2, alpha = 0.8) +
+  labs(x = "Age at last reproduction", y = "Clutch size") +
+  theme_bw() +
+  scale_y_continuous(breaks=seq(1,15,2)) +
+  scale_x_continuous(breaks=seq(1,7,1)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+# Fledgeling success
+
+suc_summary <- summarySE(suc_df, measurevar='suc', groupvars='w')
+
+ggplot() +
+  geom_jitter(data=suc_df, aes(x=w, y=suc), size=2, alpha=0.25, colour = "#248fc9") +
+  geom_errorbar(data=suc_summary, aes(x=w, y=suc, ymin=suc-se, ymax=suc+se)) +
+  geom_point(data=suc_summary, aes(x=w, y=suc), colour = "black", size = 2, alpha = 0.8) +
+  labs(x = "Age at last reproduction", y = "Number of successfully fledged nestlings") +
+  theme_bw() +
+  scale_y_continuous(breaks=seq(0,15,2)) +
+  scale_x_continuous(breaks=seq(1,7,1)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+```
+
+
+
+### 3. Sample sizes of each breeding trait by age
+
+```{r, fig.align='center'}
+# 1. First egg lay date
+
+fed_age <- fed_df %>% dplyr::count(yo)
+
+fed_w <- fed_df %>% dplyr::count(w)
+
+fed_age  # here we can see the number of observations per age group
+
+fed_w  # and here we can see the number of observations per age-at-last-reproduction group
+
+fedplot1 <- ggplot(fed_df, aes(x=yo)) +
+  geom_freqpoly(colour="#248fc9", binwidth=1, linejoin = "round") +
+  geom_point(stat="bin", aes(y=after_stat(count)), binwidth=1, colour="black", size = 2) +  
+  geom_label(stat="count", label = fed_age$n, vjust=-0.5, data = fed_age) + 
+  theme_bw() +
+  scale_x_continuous(breaks=seq(1,3,1), limits=c(1,3)) +
+  scale_y_continuous(limits=c(0,700)) +
+  labs(x = "Age (in years old)", y = "Observations (fed)", title = "Overall number of female recordings per age (yo) group") +
+  theme( axis.title = element_text(size = 13), 
+         axis.text = element_text(size = 11),
+         axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+         axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+fedplot2 <- ggplot(fed_df, aes(x=w)) +
+  geom_freqpoly(colour="#248fc9", binwidth=1, linejoin = "round") +
+  geom_point(stat="bin", aes(y=after_stat(count)), binwidth=1, colour="black", size = 2) + 
+  geom_label(stat="count", label = fed_w$n, vjust=-0.5, data = fed_w) + 
+  theme_bw() +
+  scale_x_continuous(breaks=seq(1,8,1), limits=c(1,8)) +
+  scale_y_continuous(limits=c(0,500)) +
+  labs(x = "Age at last reproduction (w)", y = "Observations (fed)", title = "Overall number of female recordings per age-at-last-reproduction (w) group") +
+  theme( axis.title = element_text(size = 13), 
+         axis.text = element_text(size = 11),
+         axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+         axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+grid.arrange(fedplot1, fedplot2, ncol=2, nrow = 1)
+
+## For clutch size
+
+cs_age <- cs_df %>% dplyr::count(yo)
+
+cs_w <- cs_df %>% dplyr::count(w)
+
+cs_age  # number of observations per age group
+
+cs_w  # number of observations per age-at-last-reproduction group
+
+csplot1 <- ggplot(cs_df, aes(x=yo)) +
+  geom_freqpoly(colour="#248fc9", binwidth=1, linejoin = "round") +
+  geom_point(stat="bin", aes(y=after_stat(count)), binwidth=1, colour="black", size = 2) +  
+  geom_label(stat="count", label = cs_age$n, vjust=-0.5, data = cs_age) + 
+  theme_bw() +
+  scale_x_continuous(breaks=seq(1,3,1), limits=c(1,3)) +
+  scale_y_continuous(limits=c(0,800)) +
+  labs(x = "Age (in years old)", y = "Observations (cs)", title = "Overall number of female recordings per age (yo) group") +
+  theme( axis.title = element_text(size = 13), 
+         axis.text = element_text(size = 11),
+         axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+         axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+csplot2 <- ggplot(cs_df, aes(x=w)) +
+  geom_freqpoly(colour="#248fc9", binwidth=1, linejoin = "round") +
+  geom_point(stat="bin", aes(y=after_stat(count)), binwidth=1, colour="black", size = 2) + 
+  geom_label(stat="count", label = cs_w$n, vjust=-0.5, data = cs_w) + 
+  theme_bw() +
+  scale_x_continuous(breaks=seq(1,8,1), limits=c(1,8)) +
+  scale_y_continuous(limits=c(0,600)) +
+  labs(x = "Age at last reproduction (w)", y = "Observations (cs)", title = "Overall number of female recordings per age-at-last-reproduction (w) group") +
+  theme( axis.title = element_text(size = 13), 
+         axis.text = element_text(size = 11),
+         axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+         axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+grid.arrange(csplot1, csplot2, ncol=2, nrow = 1)
+
+
+## For number of fledgelings
+
+suc_age <- suc_df %>% dplyr::count(yo)
+
+suc_w <- suc_df %>% dplyr::count(w)
+
+suc_age  # number of observations per age group
+
+suc_w  # number of observations per age-at-last-reproduction group
+
+sucplot1 <- ggplot(suc_df, aes(x=yo)) +
+  geom_freqpoly(colour="#248fc9", binwidth=1, linejoin = "round") +
+  geom_point(stat="bin", aes(y=after_stat(count)), binwidth=1, colour="black", size = 2) +  
+  geom_label(stat="count", label = suc_age$n, vjust=-0.5, data = suc_age) + 
+  theme_bw() +
+  scale_x_continuous(breaks=seq(1,3,1), limits=c(1,3)) +
+  scale_y_continuous(limits=c(0,800)) +
+  labs(x = "Age (in years old)", y = "Observations (suc)", title = "Overall number of female recordings per age (yo) group") +
+  theme( axis.title = element_text(size = 13), 
+         axis.text = element_text(size = 11),
+         axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+         axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+sucplot2 <- ggplot(suc_df, aes(x=w)) +
+  geom_freqpoly(colour="#248fc9", binwidth=1, linejoin = "round") +
+  geom_point(stat="bin", aes(y=after_stat(count)), binwidth=1, colour="black", size = 2) + 
+  geom_label(stat="count", label = suc_w$n, vjust=-0.5, data = suc_w) + 
+  theme_bw() +
+  scale_x_continuous(breaks=seq(1,8,1), limits=c(1,8)) +
+  scale_y_continuous(limits=c(0,600)) +
+  labs(x = "Age at last reproduction (w)", y = "Observations (suc)", title = "Overall number of female recordings per age-at-last-reproduction (w) group") +
+  theme( axis.title = element_text(size = 13), 
+         axis.text = element_text(size = 11),
+         axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+         axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+grid.arrange(sucplot1, sucplot2, ncol=2, nrow = 1)
+```
+
+
+
+### 4. Exploring breeding traits separately
+
+```{r, fig.align='center'}
+
+level_order <- c("EDI", "RSY", "FOF", "BAD", "LVN", "DOW", "GLF", "SER", "MCH", "PTH", "STY", "BIR", "DUN", "BLG", "PIT", "KCK", "KCZ", "BLA", "CAL", "DNM", "DNC", "DNS", "DLW", "CRU", "NEW", "HWP", "INS", "FSH", "RTH", "AVI", "AVN", "CAR", "SLS", "TOM", "DAV", "ART", "MUN", "FOU", "ALN", "DEL", "TAI", "SPD", "OSP", "DOR")
+## First egg lay date ##
+
+# Overall first egg lay date 
+ggplot(blutidf, aes(fed)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
+  labs(x = "First egg lay date (1st Jan = 1)", y = "Frequency") +
+  theme_bw() +
+  scale_x_continuous(breaks=seq(90,200,5)) +
+  theme(axis.title = element_text(size = 14), axis.text = element_text(size = 12))
+
+
+# Overall first egg lay date (up until 3 y.o.)  
+ggplot(fed_df, aes(fed)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
+  geom_vline(xintercept = mean(fed_df$fed), colour = "maroon", linewidth = 1.2, linetype = 2) +
+  labs(x = "First egg lay date (1st Jan = 1)", y = "Frequency") +
+  theme_bw() +
+  scale_x_continuous(breaks=seq(90,200,5)) +
+  scale_y_continuous(expand = c(0, 0), limits=c(0,90)) +
+  theme(axis.title = element_text(size = 14), axis.text = element_text(size = 12))  # at first glance, although it looks a bit shifted, first egg lay date appears to be more or less Normally distributed
+
+qqnorm(blutidf_3yo$fed); qqline(blutidf_3yo$fed, col = 2)  # the observations mostly align with the diagonal that crosses through the first and third quantiles of the theoretical Normal distribution, except for the tails of the data distribution.
+
+# Once we've looked at the trait distribution overall, we can take a look at how this distribution changes when we plot observations both by age and by age at last reproductive attempt:
+
+# First egg lay date by age(up until 3 y.o.) 
+ggplot(fed_df, aes(fed)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
+  labs(x = "First egg lay date (1st Jan = 1)", y = "Frequency") +
+  theme_bw() +
+  facet_wrap(~ yo) +
+  scale_x_continuous(breaks=seq(90,200,5)) +
+  scale_y_continuous(expand = c(0, 0), limits=c(0,40)) +
+  theme(axis.title = element_text(size = 14), axis.text = element_text(size = 12, angle = 90))
+
+# First egg lay date by age at last reproductive attempt 
+ggplot(fed_df, aes(fed)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
+  labs(x = "Number of chicks fledged successfully", y = "Frequency") +
+  theme_bw() +
+  facet_wrap(~ w) +
+  scale_x_continuous(breaks=seq(90,200,5)) +
+  theme(axis.title = element_text(size = 14), axis.text = element_text(size = 12, angle = 90)) 
+
+# The main thing that catches one's attention is the decrease in frequency as age and age at last reproduction increases.
+
+# We could also summarise the variable in terms of mean value(s), standard error(s), minimum and maximum value(s)...
+
+mean(fed_df$fed)  # On average, females tend to start laying eggs on ordinal day 121 (~1st of May)
+
+se <- function(x) {
+  sd(x)/(sqrt(length(x)))
+}  # this rudimentary function should be able to calculate the SE...
+
+se(fed_df$fed)  # ...as shown here
+
+fed_df %>% group_by(yo) %>% summarise_at(vars(fed), list(mean=mean, sd=sd, SE=se, min=min, max=max)) %>% as.data.frame()  # summarising the data to mean, standard deviation, min. value and max. value 
+
+#  One can also get the impression that the mean increases as age increases, however the decrease between age groups is of barely 1-2 days on average (as we can see on the summary table above). As for the range of values, the distribution appears to be slightly narrower for observations at age 3 (y.o.) (the earlier recorded first egg lay date is 4 days later than for younger birds but the latest is at least 5 days earlier than the last first egg lay date observed in younger birds). 
+
+
+# Let's plot mean +- SE over raw (noisy) data now.
+
+# By site:
+
+fed_summary <- summarySE(fed_df, measurevar='fed', groupvars='year')
+
+ggplot() +
+  geom_jitter(data=fed_df, aes(x=year, y=fed), size=2, alpha=0.25, colour = "#248fc9") +
+  geom_errorbar(data=fed_summary, aes(x=year, y=fed, ymin=fed-se, ymax=fed+se)) +
+  geom_point(data=fed_summary, aes(x=year, y=fed), colour = "black", size = 2, alpha = 0.8) +
+  labs(x = "Year", y = "First egg lay date (1st Jan = 1)") +
+  theme_bw() +
+  scale_x_continuous(breaks=seq(2014,2025,1)) +
+  scale_y_continuous(breaks=seq(90,200,5)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle = 90),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))  # There's quite a lot of variation from one year to another, and we can clearly see that there are much fewer observations during 2020. This points clearly towards the need to include year random effects in the models.
+
+# By site
+
+fed_summary <- summarySE(fed_df, measurevar='fed', groupvars='site')
+
+ggplot() +
+  geom_jitter(data=fed_df, aes(x=site, y=fed), size=2, alpha=0.25, colour = "#248fc9") +
+  geom_errorbar(data=fed_summary, aes(x=site, y=fed, ymin=fed-se, ymax=fed+se)) +
+  geom_point(data=fed_summary, aes(x=site, y=fed), colour = "black", size = 2, alpha = 0.8) +
+  labs(x = "Site", y = "First egg lay date (1st Jan = 1)") +
+  theme_bw() +
+  scale_x_discrete(limits = level_order) +
+  scale_y_continuous(breaks=seq(90,200,5)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle = 90, size = 10, vjust =0.5),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))  # At first glance, there appears to be sites on which, on average, first egg lay date is earlier and where it appears to be later (also on average): there's quite a bit of site-to-site variation. On average, first egg lay date lies between day 109 and 131 across sites, with some sites having first egg lay date as early as day ~100 and as late as day ~146. To me, this suggest that there is are important differences between sites (as we initially expected), which also implies that site random effects should be included.
+
+# By age
+
+fed_summary <- summarySE(fed_df, measurevar='fed', groupvars='yo')
+
+ggplot() +
+  geom_jitter(data=fed_df, aes(x=yo, y=fed), size=2, alpha=0.25, colour = "#248fc9") +
+  geom_errorbar(data=fed_summary, aes(x=yo, y=fed, ymin=fed-se, ymax=fed+se)) +
+  geom_point(data=fed_summary, aes(x=yo, y=fed), colour = "black", size = 2, alpha = 0.8) +
+  labs(x = "Age", y = "First egg lay date (1st Jan = 1)") +
+  theme_bw() +
+  scale_y_continuous(breaks=seq(90,200,5)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))  # First egg lay date does, indeed, decrease as age increases
+
+# By age at last reproductive event
+
+fed_summary <- summarySE(fed_df, measurevar='fed', groupvars='w')
+
+ggplot() +
+  geom_jitter(data=fed_df, aes(x=w, y=fed), size=2, alpha=0.25, colour = "#248fc9") +
+  geom_errorbar(data=fed_summary, aes(x=w, y=fed, ymin=fed-se, ymax=fed+se)) +
+  geom_point(data=fed_summary, aes(x=w, y=fed), colour = "black", size = 2, alpha = 0.8) +
+  labs(x = "Age at last reproductive event", y = "First egg lay date (1st Jan = 1)") +
+  theme_bw() +
+  scale_y_continuous(breaks=seq(90,200,5)) +
+  scale_x_continuous(breaks=seq(1,8,1)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))  # Here, we can see that between 1 and 3 years of longevity, first egg lay date is earlier. However, after that the trend is more irregular (since we have fewer observations)ç
+
+## Clutch size ##
+
+# Histogram of overall cs
+ggplot(blutidf, aes(cs)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
+  labs(x = "Clutch size", y = "Frequency") +
+  theme_bw() +
+  scale_x_continuous(breaks=seq(0,15,2)) +
+  theme(axis.title = element_text(size = 14), axis.text = element_text(size = 12))
+
+
+# Histogram of overall cs (up until 3 y.o.)  
+ggplot(cs_df, aes(cs)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
+  geom_vline(xintercept = mean(cs_df$cs), colour = "maroon", linewidth = 1.2, linetype = 2) +
+  labs(x = "Clutch size", y = "Frequency") +
+  theme_bw() +
+  scale_x_continuous(breaks=seq(0,15,1)) +
+  scale_y_continuous(expand = c(0, 0), limits=c(0,400)) +
+  theme(axis.title = element_text(size = 14), axis.text = element_text(size = 12))
+
+# The sampling distribution of `cs` appears to be more normally distributed than the sampling distribution of `fed`, which should make things easier:
+
+qqnorm(cs_df$cs); qqline(cs_df$cs, col = 2)
+
+# However, the Q-Q plot looks odd. 
+# As with `fed`, the plot highlight that the data is count data, for which (if I'm not mistaken) the best distribution to model it would be a Poisson distribution, although Sanjana mentioned that this might not be necessary since it's been shown that the model outputs usually don't change as much. 
+# Apart from that, it also looks like the distribution is light-tailed according to the shape of the Q-Qplot.
+
+# Again, we can now take a look at how this distribution changes when we plot observations both by age and by age at last reproductive attempt:
+
+# Clutch size by age(up until 3 y.o.) # 
+ggplot(cs_df, aes(cs)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
+  labs(x = "Clutch size", y = "Frequency") +
+  theme_bw() +
+  facet_wrap(~ yo) +
+  scale_x_continuous(breaks=seq(0,15,1)) +
+  theme(axis.title = element_text(size = 14), axis.text = element_text(size = 12))
+
+# Clutch size by age at last reproductive attempt #
+ggplot(cs_df, aes(cs)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
+  labs(x = "Number of chicks fledged successfully", y = "Frequency") +
+  theme_bw() +
+  facet_wrap(~ w) +
+  scale_x_continuous(breaks=seq(0,13,1)) +
+  theme(axis.title = element_text(size = 14), axis.text = element_text(size = 12)) 
+
+# And we can summarise the variable:
+
+cs_df %>% group_by(yo) %>% summarise_at(vars(cs), list(mean=mean, sd=sd, SE=se, min=min, max=max)) %>% as.data.frame()
+
+# When we look at the mean clutch size per age group, we can see that, on average, it increases as age increases: it increases by 0.29 eggs (around 3% increase) from 1 y.o. to 2 y.o, but then it decreases between 2 y.o. and 3 y.o. by 0.05 eggs (0.6 % decrease). However, the minimum at age 3 is 4, whereas it's 2 and 1 for 2 y.o. and 1 y.o. respectively. The maximum decreases at 13 y.o. 
+
+# Let's summarise by age at last reproductive attempt now:
+
+cs_df %>% group_by(w) %>% summarise_at(vars(cs), list(mean=mean, sd=sd, SE=se, min=min, max=max)) %>% as.data.frame()  
+
+# On average, clutch size also increases up until 7 y.o. at last reproductive attempt (although SE is greater). The maximum clutch size is found in birds that are estimated to reproduce only once or twice. 
+# Without further insight, my first though is that birds that invest more energy and resources from their first reproductive attempt wear out sooner and die sooner, whereas birds that don't invest as much in each reproductive attempt that they undergo manage to save enough energy to live another year and, therefore, reproduce once more. 
+# It's interesting though how clutch size still increases on average (until 7 y.o. at last reproductive attempt).
+
+# Let's plot clutch size raw data...
+
+#...by year:
+
+cs_summary <- summarySE(cs_df, measurevar='cs', groupvars='year')
+
+ggplot() +
+  geom_jitter(data=cs_df, aes(x=year, y=cs), size=2, alpha=0.25, colour = "#248fc9") +
+  geom_errorbar(data=cs_summary, aes(x=year, y=cs, ymin=cs-se, ymax=cs+se)) +
+  geom_point(data=cs_summary, aes(x=year, y=cs), colour = "black", size = 2, alpha = 0.8) +
+  labs(x = "Year", y = "Clutch size") +
+  theme_bw() +
+  scale_x_continuous(breaks=seq(2014,2025,1)) +
+  scale_y_continuous(breaks=seq(0,15,1)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle = 90), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) # Unlike with `fed`, average values remain quite close among years, with a few exceptions (e.g. 2015 and 2029).
+
+#...by site:
+
+bluti_cs_summary <- cs_df %>%
+  group_by(site) %>%
+  summarise_at(vars(cs), list(mean=mean, SE=se)) %>% 
+  as.data.frame()  
+
+cs_summary <- summarySE(cs_df, measurevar='cs', groupvars='site')
+
+ggplot(cs_df, aes(x=site, y=cs)) +
+  geom_jitter(size=1.5, alpha=0.25, colour = "#248fc9") +
+  geom_errorbar(data=cs_summary, aes(x=site, y=cs, ymin=cs-se, ymax=cs+se)) +
+  geom_point(data=cs_summary, aes(x=site, y=cs), colour = "black", size = 2) +
+  labs(x = "Sites", y = "Clutch size") +
+  theme_bw() +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle = 90, size = 11, vjust = 0.5), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  scale_x_discrete(limits = level_order) +
+  scale_y_continuous(breaks=seq(0,15,1))  # However, there's quite a bit of variation between sites (although on average clutch size remains between ~7 and ~10 eggs)
+
+# As with `fed` this suggests that, considering that sites differ in habitat, `cs` varies depending on the habitat and its quality (although it should also be taken into consideration that, according to Ally, birds stay more or less "faithful" to breeding sites, usually returning to the same site or to a nearby site year after year; as a matter of fact, the oldest recorded bird in the transect has always bred in nest box 1 in EDI site).
+
+# By age
+
+cs_summary <- summarySE(cs_df, measurevar='cs', groupvars='yo')
+
+ggplot() +
+  geom_jitter(data=cs_df, aes(x=yo, y=cs), size=2, alpha=0.25, colour = "#248fc9") +
+  geom_errorbar(data=cs_summary, aes(x=yo, y=cs, ymin=cs-se, ymax=cs+se)) +
+  geom_point(data=cs_summary, aes(x=yo, y=cs), colour = "black", size = 2, alpha = 0.8) +
+  labs(x = "Age", y = "Clutch size") +
+  theme_bw() +
+  scale_y_continuous(breaks=seq(1,15,2)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))  # Clutch size does, indeed, increase as age increases
+
+# By age at last reproductive event
+
+cs_summary <- summarySE(cs_df, measurevar='cs', groupvars='w')
+
+ggplot() +
+  geom_jitter(data=cs_df, aes(x=w, y=cs), size=2, alpha=0.25, colour = "#248fc9") +
+  geom_errorbar(data=cs_summary, aes(x=w, y=cs, ymin=cs-se, ymax=cs+se)) +
+  geom_point(data=cs_summary, aes(x=w, y=cs), colour = "black", size = 2, alpha = 0.8) +
+  labs(x = "Age at last reproductive event", y = "Clutch size") +
+  theme_bw() +
+  scale_y_continuous(breaks=seq(1,15,2)) +
+  scale_x_continuous(breaks=seq(1,8,1)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))  # Here, we can see that between 1 and 3 years of longevity, first egg lay date is earlier. However, after that the trend is more irregular (since we have fewer observations)
+
+## Number of fledgelings ##
+
+# Histogram of overall Number of fledgelings
+ggplot(blutidf, aes(suc)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
+  labs(x = "Number of fledgelings", y = "Frequency") +
+  theme_bw() +
+  scale_x_continuous(breaks=seq(0,13,1)) +
+  theme(axis.title = element_text(size = 14), axis.text = element_text(size = 12))
+
+# Histogram of overall Number of fledgelings (up until 3 y.o.)
+ggplot(suc_df, aes(suc)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
+  labs(x = "Number of fledgelings", y = "Frequency") +
+  geom_vline(xintercept = mean(suc_df$suc), colour = "maroon", linewidth = 1.2, linetype = 2) +
+  theme_bw() +
+  scale_x_continuous(breaks=seq(0,13,1)) +
+  scale_y_continuous(expand = c(0,0), limits = c(0,200)) +
+  theme(axis.title = element_text(size = 14), axis.text = element_text(size = 12))  # The `suc` histogram clearly shows a spike in 0s. Sanjana suggested using a Hurdle model to deal with this.
+
+#For number of fledgelings, I was also interested in seeing the proportion of chicks that fledged (comparing to the initial clutch size). This proportion will take the complete clutch into account, rather than the number of hatched eggs. However, it would be potentially more accurate to use the number of hatched eggs as base (maybe substracting the number of unhatched eggs found in V1 to the clutch size), but for now I'll use clutch size.
+
+ggplot(suc_df, aes(suc_prop)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=0.1) +
+  labs(x = "Proportion of chicks successfully fledged", y = "Frequency") +
+  theme_bw() +
+  scale_x_continuous(breaks=seq(0,1,0.1)) +
+  theme(axis.title = element_text(size = 14,), axis.text = element_text(size = 12))
+
+# Let's look at how this distribution changes when we plot observations both by age and by age at last reproductive attempt:
+
+# Number of fledgelings by age (up until 3 y.o.) 
+ggplot(suc_df, aes(suc)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
+  labs(x = "Number of fledgelings", y = "Frequency") +
+  theme_bw() +
+  facet_wrap(~ yo) +
+  scale_x_continuous(breaks=seq(0,13,1)) +
+  theme(axis.title = element_text(size = 14), axis.text = element_text(size = 12))  # Something quite interesting and that pops up straight aways is how the spike in 0 is smaller as age increases (although overall frequency decreases as age increases, as in `fed` and in `cs`).
+
+# Number of fledgelings by age at last reproductive attempt 
+ggplot(blutidf_3yo, aes(suc)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
+  labs(x = "Number of fledgelings", y = "Frequency") +
+  theme_bw() +
+  facet_wrap(~ w) +
+  scale_x_continuous(breaks=seq(0,13,1)) +
+  theme(axis.title = element_text(size = 14), axis.text = element_text(size = 12)) #The value 0 seems to be always a bit too frequent (except for the bird that is 7 years old, where the sole value is 8 as the two previous recordings are NAs).
+
+ggplot(suc_df, aes(suc_prop)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=0.1) +
+  labs(x = "Proportion of chicks successfully fledged", y = "Frequency", title = "Proportion of successfuly fledged chicks per age (yo) group") +
+  theme_bw() +
+  facet_wrap(~ yo) +
+  scale_x_continuous(breaks=seq(0,1,0.1)) +
+  theme(axis.title = element_text(size = 14,), axis.text = element_text(size = 12)) # Interestingly enough, complete success is more frequent in yonger birds.
+
+ggplot(suc_df, aes(suc_prop)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=0.1) +
+  labs(x = "Proportion of chicks successfully fledged", y = "Frequency", title = "Proportion of successfuly fledged chicks per age-at-last-reproduction (w) group") +
+  theme_bw() +
+  facet_wrap(~ w) +
+  scale_x_continuous(breaks=seq(0,1,0.1)) +
+  theme(axis.title = element_text(size = 14,), axis.text = element_text(size = 12, angle = 30))
+
+suc_df %>% group_by(yo) %>% summarise_at(vars(suc), list(mean=mean, sd=sd, SE=se, min=min, max=max)) %>% as.data.frame()
+
+# When we look at the mean Number of fledgelings per age group, we can see that it increases ~8% from age 1 to age 2 but it then decreases from age 2 to age 3 (it decreases ~2%), although (once again) the SE is greater. The maximum Number of fledgelings also decreases (which is somewhat expected given that we previously saw that the maximum clutch size is at ages 1 and 2).
+
+## Looking now at raw data by...
+
+# ...year:
+
+suc_summary <- summarySE(suc_df, measurevar='suc', groupvars='year')
+
+ggplot() +
+  geom_jitter(data=suc_df, aes(x=year, y=suc), size=2, alpha=0.25, colour = "#248fc9") +
+  geom_errorbar(data=suc_summary, aes(x=year, y=suc, ymin=suc-se, ymax=suc+se)) +
+  geom_point(data=suc_summary, aes(x=year, y=suc), colour = "black", size = 2, alpha = 0.8) +
+  labs(x = "Year", y = "Number of fledgelings") +
+  theme_bw() +
+  scale_x_continuous(breaks=seq(2014,2025,1)) +
+  scale_y_continuous(breaks=seq(0,15,1)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(size = 11, angle = 90),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))  # There's some variation between years, and what catches my eye the most is the extremely low Number of fledgelings in year 2024. However, this is expected as we know that last year was a particularly bad year. According to this, both 2015 and 2020 might have also been bad years, while it seems that 2014 has been the best year so far.
+
+#...site:
+
+suc_summary <- summarySE(suc_df, measurevar='suc', groupvars='site')
+
+ggplot(suc_df, aes(x=site, y=suc)) +
+  geom_jitter(size=1.5, alpha=0.25, colour = "#248fc9") +
+  geom_errorbar(data=suc_summary, aes(x=site, y=suc, ymin=suc-se, ymax=suc+se)) +
+  geom_point(data=suc_summary, aes(x=site, y=suc), colour = "black", size = 2) +
+  labs(x = "Sites", y = "Number of fledgelings") +
+  theme_bw() +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle = 90, size = 11, vjust = 0.5),  
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  scale_x_discrete(limits = level_order) +
+  scale_y_continuous(breaks=seq(0,15,1))  # On average, there appears to be some variation, with sites in which Number of fledgelings is quite low on average (3-4 chicks) and sites in which Number of fledgelings is okay-ish (with not one site reaching 8 successfully fledged chicks on average)
+
+# By age
+
+suc_summary <- summarySE(suc_df, measurevar='suc', groupvars='yo')
+
+ggplot() +
+  geom_jitter(data=suc_df, aes(x=yo, y=suc), size=2, alpha=0.25, colour = "#248fc9") +
+  geom_errorbar(data=suc_summary, aes(x=yo, y=suc, ymin=suc-se, ymax=suc+se)) +
+  geom_point(data=suc_summary, aes(x=yo, y=suc), colour = "black", size = 2, alpha = 0.8) +
+  labs(x = "Age", y = "Number of fledgelings") +
+  theme_bw() +
+  scale_y_continuous(breaks=seq(1,15,2)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))  # Clutch size does, indeed, increase as age increases
+
+# By age at last reproductive event
+
+suc_summary <- summarySE(suc_df, measurevar='suc', groupvars='w')
+
+ggplot() +
+  geom_jitter(data=suc_df, aes(x=w, y=suc), size=2, alpha=0.25, colour = "#248fc9") +
+  geom_errorbar(data=suc_summary, aes(x=w, y=suc, ymin=suc-se, ymax=suc+se)) +
+  geom_point(data=suc_summary, aes(x=w, y=suc), colour = "black", size = 2, alpha = 0.8) +
+  labs(x = "Age at last reproductive event", y = "Number of fledgelings") +
+  theme_bw() +
+  scale_y_continuous(breaks=seq(1,15,2)) +
+  scale_x_continuous(breaks=seq(1,7,1)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))  # Here, we can see that between 1 and 3 years of longevity, first egg lay date is earlier. However, after that the trend is more irregular (since we have fewer observations)
+
+```
+
+
+
+### 5. Identifying selective appearance
+
+```{r, fig.align='center'}
+age5 <- blutidf_3yo %>% 
+  filter(age <= 5) %>%
+  dplyr::select(ring) %>%
+  dplyr::count(ring)  
+
+length(unique(age5$ring))
+
+age6 <- blutidf_3yo %>% 
+  filter(age == 6) %>%
+  dplyr::select(ring) %>%
+  dplyr::count(ring)  
+
+only_age6 <- anti_join(x = age6, y = age5, by = "ring")
+
+length(unique(only_age6$ring))
+```
+
+In the generic data sets with observations limited to those were individuals' age is 3 years old maximum, there are `r length(unique(age5$ring))` females that were first identified as earlings and `r length(unique(only_age6$ring))` females that were identified only once they were 2 years old or older, out of a total of `r length(unique(blutidf_3yo$ring))` females in that dataset.
+
+```{r}
+known_age <- blutidf_3yo[which(!is.na(blutidf_3yo$ringedyear)),]
+
+birdies <- 0
+for (i in 1:nrow(only_age6)) {
+  if (only_age6[i,"ring"] %in% known_age$ring)
+    birdies <- birdies + 1
+}
+
+birdies 
+```
+
+Of all birds that were identified first as 2+ year olds, we know for certain the age of `r birdies`.
+
+Let's look at these figures for each separate data set:
+
+```{r}
+birds_at_5_fed <- fed_df %>%
+  filter(age <= 5) %>%
+  select(ring) %>%
+  distinct()
+
+birds_at_6_with_5_fed <- fed_df %>%
+  filter(age == 6) %>%
+  semi_join(birds_at_5_fed, by = "ring") %>%
+  dplyr::count(ring) 
+
+birds_at_only_6_fed <- fed_df %>%
+  filter(age == 6) %>%
+  anti_join(birds_at_5_fed, by = "ring") %>%
+  dplyr::count(ring)
+
+for (i in 1:nrow(birds_at_only_6_fed)) {
+  if (birds_at_only_6_fed[i,"ring"] %in% known_age$ring) {
+    birds_at_only_6_fed <- birds_at_only_6_fed[-i,]
+  }
+}
+
+nrow(birds_at_only_6_fed)  # 401 birds of unknown age (could be 2 years old or above) out of 1006 (~40%)
+
+
+# Clutch size
+
+birds_at_5_cs <- cs_df %>%
+  filter(age <= 5) %>%
+  select(ring) %>%
+  distinct()
+
+birds_at_6_with_5_cs <- cs_df %>%
+  filter(age == 6) %>%
+  semi_join(birds_at_5_cs, by = "ring") %>%
+  dplyr::count(ring) 
+
+birds_at_only_6_cs <- cs_df %>%
+  filter(age == 6) %>%
+  anti_join(birds_at_5_cs, by = "ring") %>%
+  dplyr::count(ring)
+
+for (i in 1:nrow(birds_at_only_6_cs)) {
+  if (birds_at_only_6_cs[i,"ring"] %in% known_age$ring) {
+    birds_at_only_6_cs <- birds_at_only_6_cs[-i,]
+  }
+}
+
+nrow(birds_at_only_6_cs)  # 440 birds of unknown age (could be 2 years old or above) out of 1188 (~37%)
+
+# Fledgeling success
+
+birds_at_5_suc <- suc_df %>%
+  filter(age <= 5) %>%
+  select(ring) %>%
+  distinct()  # 656 birds first identified as yearlings 
+
+birds_at_6_with_5_suc <- suc_df %>%
+  filter(age == 6) %>%
+  semi_join(birds_at_5_suc, by = "ring") %>%
+  dplyr::count(ring) 
+
+birds_at_only_6_suc <- suc_df %>%
+  filter(age == 6) %>%
+  anti_join(birds_at_5_suc, by = "ring") %>%
+  dplyr::count(ring)
+
+for (i in 1:nrow(birds_at_only_6_suc)) {
+  if (birds_at_only_6_suc[i,"ring"] %in% known_age$ring) {
+    birds_at_only_6_suc <- birds_at_only_6_suc[-i,]
+  }
+}
+
+nrow(birds_at_only_6_suc)  # 415 birds of unknown age (could be 2 years old or above) out of 1079 (~38%)
+
+```
+
+Once we have these numbers, let's see if there are big differences in breeding trait values between birds first identified as yearlings (regardless of whether they were seen againg later on or not) and birds first identified as 2+ year olds.
+
+```{r, fig.align='center'}
+## First egg lay date
+
+fed_red <- fed_df %>% filter(yo <= 2)
+
+fed_rings <- data.frame(ring = unique(fed_red$ring), caught = rep(0, length(unique(fed_red$ring))))
+
+fed_age5 <- fed_red %>% filter(age == 5)
+
+fed_age6 <- fed_red %>% filter(age == 6)
+
+for (i in 1:nrow(fed_rings)) {
+  if (!(fed_rings[i,"ring"] %in% fed_age5$ring) & (fed_rings[i,"ring"] %in% fed_age6$ring)) {
+    fed_rings[i,"caught"] <- "only 6"
+  } else if ((fed_rings[i,"ring"] %in% fed_age5$ring) & !(fed_rings[i,"ring"] %in% fed_age6$ring)) {
+    fed_rings[i,"caught"] <- "only 5"
+  } else if ((fed_rings[i,"ring"] %in% fed_age5$ring) & (fed_rings[i,"ring"] %in% fed_age6$ring)) {
+    fed_rings[i,"caught"] <- "5 & 6"
+  }
+}
+
+fed_rings %>% dplyr::count(caught)  # according to this, and if I'm not mistaken, 125 birds were caught both when they were 1 and 2 y.o. while 454 birds were only caught when they were 1 y.o. (age 5) and 361 were only caught when they were 2 y.o. (age 6)
+
+fed_red$caught <- fed_rings[match(fed_red$ring, fed_rings$ring),"caught"]  # assigning a category to each of the observations in the reduced dataset
+
+fed_red[which(fed_red$caught == "only 5"),"caught"] <- NA
+
+se <- function(x) {
+  sd(x)/(sqrt(length(x)))
+}
+
+fed_red_summary <- fed_red %>%
+  group_by(caught) %>%
+  summarise_at(vars(fed), list(mean=mean, SE=se)) %>% 
+  as.data.frame()
+
+ggplot() +
+  geom_jitter(data=fed_red, aes(x=caught, y=fed), size=2, alpha=0.25, colour = "#248fc9") +
+  geom_errorbar(data=fed_red_summary, aes(x=caught, y=mean, ymin=mean-SE, ymax=mean+SE)) +
+  geom_point(data=fed_red_summary, aes(x=caught, y=mean), colour = "black", size = 2, alpha = 0.8) +
+  labs(x = NULL, y = "First egg lay date (1st Jan = 1)", title = "Differences in fed between birds caught once or twice") +
+  theme_bw() +
+  scale_y_continuous(breaks=seq(110,135,5), limits = c(110, 135)) +  # I chopped some observations to be able to see better the SE
+  scale_x_discrete(limits = c("only 6", "5 & 6")) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+# At first glance, mean +- SE overlaps for birds caught only at age 6 (2 y.o.) and birds caught at both age 5 and 6 (1 & 2 y.o.)
+
+
+# Clutch size
+
+cs_red <- cs_df %>% filter(yo <= 2)
+
+cs_rings <- data.frame(ring = unique(cs_red$ring), caught = rep(0, length(unique(cs_red$ring))))
+
+cs_age5 <- cs_red %>% filter(age == 5)
+
+cs_age6 <- cs_red %>% filter(age == 6)
+
+for (i in 1:nrow(cs_rings)) {
+  if (!(cs_rings[i,"ring"] %in% cs_age5$ring) & (cs_rings[i,"ring"] %in% cs_age6$ring)) {
+    cs_rings[i,"caught"] <- "only 6"
+  } else if ((cs_rings[i,"ring"] %in% cs_age5$ring) & !(cs_rings[i,"ring"] %in% cs_age6$ring)) {
+    cs_rings[i,"caught"] <- "only 5"
+  } else {
+    cs_rings[i,"caught"] <- "5 & 6"
+  }
+}
+
+cs_rings %>% dplyr::count(caught)  # according to this, and for clutch size, 185 birds were caught both when they were 1 and 2 y.o. while 517 birds were only caught when they were 1 y.o. (age 5) and 396 were only caught when they were 2 y.o. (age 6). Unlike with fed, this might be a problem
+
+cs_red$caught <- cs_rings[match(cs_red$ring, cs_rings$ring),"caught"]  # assigning a category to each of the observations in the reduced dataset
+
+cs_red[which(cs_red$caught == "only 5"),"caught"] <- NA
+
+se <- function(x) {
+  sd(x)/(sqrt(length(x)))
+}
+
+cs_red_summary <- cs_red %>%
+  group_by(caught) %>%
+  summarise_at(vars(cs), list(mean=mean, SE=se)) %>% 
+  as.data.frame()
+
+ggplot() +
+  geom_jitter(data=cs_red, aes(x=caught, y=cs), size=2, alpha=0.25, colour = "#248fc9") +
+  geom_errorbar(data=cs_red_summary, aes(x=caught, y=mean, ymin=mean-SE, ymax=mean+SE)) +
+  geom_point(data=cs_red_summary, aes(x=caught, y=mean), colour = "black", size = 2, alpha = 0.8) +
+  labs(x = NULL, y = "Clutch size", title = "Differences in cs between birds caught once or twice") +
+  theme_bw() +
+  scale_y_continuous(breaks=seq(0,15,2)) +  
+  scale_x_discrete(limits = c("only 6", "5 & 6")) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+# At first glance, clutch size appears to be slightly higher (on average) for birds caught at both 1 y.o. and 2 y.o., but it might not be significant
+
+
+
+# Fledgeling success
+
+suc_red <- suc_df %>% filter(yo <= 2)
+
+suc_rings <- data.frame(ring = unique(suc_red$ring), caught = rep(0, length(unique(suc_red$ring))))
+
+suc_age5 <- suc_red %>% filter(age == 5)
+
+suc_age6 <- suc_red %>% filter(age == 6)
+
+for (i in 1:nrow(suc_rings)) {
+  if (!(suc_rings[i,"ring"] %in% suc_age5$ring) & (suc_rings[i,"ring"] %in% suc_age6$ring)) {
+    suc_rings[i,"caught"] <- "only 6"
+  } else if ((suc_rings[i,"ring"] %in% suc_age5$ring) & !(suc_rings[i,"ring"] %in% suc_age6$ring)) {
+    suc_rings[i,"caught"] <- "only 5"
+  } else {
+    suc_rings[i,"caught"] <- "5 & 6"
+  }
+}
+
+suc_rings %>% dplyr::count(caught)  # according to this, and for clutch size, 185 birds were caught both when they were 1 and 2 y.o. while 517 birds were only caught when they were 1 y.o. (age 5) and 396 were only caught when they were 2 y.o. (age 6). Unlike with fed, this might be a problem
+
+suc_red$caught <- suc_rings[match(suc_red$ring, suc_rings$ring),"caught"]  # assigning a category to each of the observations in the reduced dataset
+
+suc_red[which(suc_red$caught == "only 5"),"caught"] <- NA
+
+se <- function(x) {
+  sd(x)/(sqrt(length(x)))
+}
+
+suc_red_summary <- suc_red %>%
+  group_by(caught) %>%
+  summarise_at(vars(suc), list(mean=mean, SE=se)) %>% 
+  as.data.frame()
+
+ggplot() +
+  geom_jitter(data=suc_red, aes(x=caught, y=suc), size=2, alpha=0.25, colour = "#248fc9") +
+  geom_errorbar(data=suc_red_summary, aes(x=caught, y=mean, ymin=mean-SE, ymax=mean+SE)) +
+  geom_point(data=suc_red_summary, aes(x=caught, y=mean), colour = "black", size = 2, alpha = 0.8) +
+  labs(x = NULL, y = "Fledgeling success", title = "Differences in suc between birds caught once or twice") +
+  theme_bw() +
+  scale_y_continuous(breaks=seq(0,15,2)) +  
+  scale_x_discrete(limits = c("only 6", "5 & 6")) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+# At first glance, it looks like there might be a significant difference in fledgeling success between individuals caught only at 2 y.o. vs. individuals caught at both 1 and 2 y.o.
+
+
+```
+
+Even when comparing between birds first caught as yearlings and birds caught only when they were 2+ year older, it appears that selective appearance is not having an effect by bringing down the average trend.
+
+
+### 7. Exploring predictors
+
+#### a) Nest box occupancy
+
+```{r, fig.align='center'}
+ggplot(environment, aes(x=sites, y=new_site_occ)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Sites", y = "Average occupancy") +
+  theme(axis.title = element_text(size = 13), 
+        axis.text = element_text(size = 11),
+        axis.text.x = element_text(angle = 90, margin = unit(c(3, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  scale_x_discrete(limits = level_order) 
+```
+Average nest box occupation does not seem to follow a latitudinal pattern, but it is clear that some sites have very low occupancy (DNM, DNC, DNS, DLW, SLS...) while others have a high occupancy (EDI, FOF, GLF...). However, it might not be correlated in any way to breeding success.
+
+#### b) Elevation
+
+```{r, fig.align='center'}
+ggplot(environment, aes(x=sites, y=elevation)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Sites", y = "Average site elevation") +
+  theme(axis.title = element_text(size = 13), 
+        axis.text = element_text(size = 11),
+        axis.text.x = element_text(angle = 90, margin = unit(c(3, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  scale_x_discrete(limits = level_order) 
+```
+Although very roughly, there may be some degree of correlation between average nest occupancy and average site elevation:
+
+```{r, fig.align='center'}
+ggplot(environment, aes(x=elevation, y=new_site_occ)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Elevation", y = "Average occupancy") +
+  theme(axis.title = element_text(size = 13), 
+        axis.text = element_text(size = 11),
+        axis.text.x = element_text(margin = unit(c(1, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) 
+
+
+```
+It appears that as elevation increases, nest occupancy decreases. Although it might not be directly relevant to environment characterisation, it will most likely be something interesting to take into account as low nest occupancy might imply less competition over available resources, and therefore this could compensate for a bad quality site (e.g. if the site provides poor resources, but these resources have to be split only among a few birds, they could potentially perform better than birds that live in a very good quality site but that have to compete with more birds for access to the available resources, especially if they are not good competitors).
+
+#### c) Number of oak trees
+
+```{r, fig.align='center'}
+ggplot(environment, aes(x=sites, y=TOTAL_oak)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Sites", y = "Absolute number of oaks") +
+  theme(axis.title = element_text(size = 13), 
+        axis.text = element_text(size = 11),
+        axis.text.x = element_text(angle = 90, margin = unit(c(3, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  scale_x_discrete(limits = level_order)
+
+ggplot(environment, aes(x=elevation, y=TOTAL_oak)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Elevation", y = "Absolute number of oaks") +
+  theme(axis.title = element_text(size = 13), 
+        axis.text = element_text(size = 11),
+        axis.text.x = element_text(margin = unit(c(1, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) 
+
+ggplot(environment, aes(x=TOTAL_oak, y=new_site_occ)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Absolute number of oaks", y = "Average occupancy") +
+  theme(axis.title = element_text(size = 13), 
+        axis.text = element_text(size = 11),
+        axis.text.x = element_text(margin = unit(c(1, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) 
+```
+
+#### d) 
+
+### 7. Breeding traits vs. environmental predictors
+
+```{r, fig.align='center', fig.width=12}
+## Total foliage score ##
+
+# First egg lay date
+
+fed_df$total_FS <- habitat_foliage_scores[match(fed_df$site, habitat_foliage_scores$Site),"Total"]
+
+fedplot1 <- ggplot(fed_df, aes(x=total_FS, y=fed)) +
+  geom_point(alpha=0.75) +
+  theme_bw() +
+  labs(x = "Total foliage score", y = "First egg lay date (1 = 1st Jan)") +
+  scale_y_continuous(breaks=seq(95,150,5)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(margin = unit(c(1, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+# Clutch size
+
+cs_df$total_FS <- habitat_foliage_scores[match(cs_df$site, habitat_foliage_scores$Site),"Total"]
+
+csplot1 <- ggplot(cs_df, aes(x=total_FS, y=cs)) +
+  geom_point(alpha=0.75) +
+  theme_bw() +
+  labs(x = "Total foliage score", y = "Clutch size") +
+  scale_y_continuous(breaks=seq(1,15,2)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(margin = unit(c(1, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+# Fledgeling success
+
+suc_df$total_FS <- habitat_foliage_scores[match(suc_df$site, habitat_foliage_scores$Site),"Total"]
+
+sucplot1 <- ggplot(suc_df, aes(x=total_FS, y=suc)) +
+  geom_point(alpha=0.75) +
+  theme_bw() +
+  labs(x = "Total foliage score", y = "Number of fledgelings") +
+  scale_y_continuous(breaks=seq(0,15,2)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(margin = unit(c(1, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+grid.arrange(fedplot1,csplot1,sucplot1, ncol=3, nrow=1)
+
+## Proportion of oak and birch foliage score ##
+
+# First egg lay date
+
+fed_df$oak_birch_FS <- environment[match(fed_df$site, environment$sites),"oak_birch_FS_prop"]
+
+fedplot2 <- ggplot(fed_df, aes(x=oak_birch_FS, y=fed)) +
+  geom_point(alpha=0.75) +
+  theme_bw() +
+  labs(x = "Proportion of oak and birch foliage score", y = "First egg lay date (1 = 1st Jan)") +
+  scale_y_continuous(breaks=seq(95,150,5)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(margin = unit(c(1, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+# Clutch size
+
+cs_df$oak_birch_FS <- environment[match(cs_df$site, environment$sites),"oak_birch_FS_prop"]
+
+csplot2 <- ggplot(cs_df, aes(x=oak_birch_FS, y=cs)) +
+  geom_point(alpha=0.75) +
+  theme_bw() +
+  labs(x = "Proportion of oak and birch foliage score", y = "Clutch size") +
+  scale_y_continuous(breaks=seq(1,15,2)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(margin = unit(c(1, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+# Fledgeling success
+
+suc_df$oak_birch_FS <- environment[match(suc_df$site, environment$sites),"oak_birch_FS_prop"]
+
+sucplot2 <- ggplot(suc_df, aes(x=oak_birch_FS, y=suc)) +
+  geom_point(alpha=0.75) +
+  theme_bw() +
+  labs(x = "Proportion of oak and birch foliage score", y = "Number of fledgelings") +
+  scale_y_continuous(breaks=seq(1,15,2)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(margin = unit(c(1, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+grid.arrange(fedplot2,csplot2,sucplot2, ncol=3, nrow=1)
+
+
+## Proportion of oak, birch and foliage score ##
+
+# First egg lay date
+
+fed_df$oak_birch_sycamore_FS <- environment[match(fed_df$site, environment$sites),"oak_birch_sycamore_FS_prop"]
+
+fedplot3 <- ggplot(fed_df, aes(x=oak_birch_sycamore_FS, y=fed)) +
+  geom_point(alpha=0.75) +
+  theme_bw() +
+  labs(x = "Proportion of oak, birch and sycamore foliage score", y = "First egg lay date (1 = 1st Jan)") +
+  scale_y_continuous(breaks=seq(95,150,5)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(margin = unit(c(1, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+# Clutch size
+
+cs_df$oak_birch_sycamore_FS <- environment[match(cs_df$site, environment$sites),"oak_birch_sycamore_FS_prop"]
+
+csplot3 <- ggplot(cs_df, aes(x=oak_birch_sycamore_FS, y=cs)) +
+  geom_point(alpha=0.75) +
+  theme_bw() +
+  labs(x = "Proportion of oak and birch foliage score", y = "Clutch size") +
+  scale_y_continuous(breaks=seq(1,15,2)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(margin = unit(c(1, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+# Fledgeling success
+
+suc_df$oak_birch_sycamore_FS <- environment[match(suc_df$site, environment$sites),"oak_birch_sycamore_FS_prop"]
+
+sucplot3 <- ggplot(suc_df, aes(x=oak_birch_sycamore_FS, y=suc)) +
+  geom_point(alpha=0.75) +
+  theme_bw() +
+  labs(x = "Proportion of oak and birch foliage score", y = "Number of fledgelings") +
+  scale_y_continuous(breaks=seq(1,15,2)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(margin = unit(c(1, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+grid.arrange(fedplot3,csplot3,sucplot3, ncol=3, nrow=1)
+
+```
+

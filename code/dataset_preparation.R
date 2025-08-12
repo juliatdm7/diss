@@ -6,23 +6,22 @@
 # Loading necessary packages
 library(dplyr)  
 library(tidyverse)
-library(openxlsx)
 
 # Loading original datasets
-alladults <- read.csv("data/AdultsII.csv")  # loading adult blue tits data as a tibble
-alladults  # visualising first rows of data
-allbirdphen <- read.csv("data/Bird_PhenologyII.csv")  # loading phenology data as a tibble (easier to manage)
-allbirdphen  # visualising first rows of data
+alladults <- read.csv("data/Adults_2025.csv")  # loading adult blue tits data as a tibble
+as_tibble(alladults)  # visualising first rows of data
+allbirdphen <- read.csv("data/Bird_Phenology_2025.csv")  # loading phenology data as a tibble (easier to manage)
+as_tibble(allbirdphen)  # visualising first rows of data
 
 # Selecting variables that will be useful for the project from the phenology data
-# Since we aim to study breeding success trends in blue tit populations across age groups and across sites, we will extract those variables that may be useful to study breeding success: first egg lay date ("fed"), number of hatched eggs ("number.hatched") and fledling success (suc)
+# Since we aim to study breeding success trends in blue tit populations across age groups and across sites, we will extract those variables that may be useful to study breeding success: first egg lay date ("fed"), clutch size ("cs") and number of fledgelings ("suc")
 blutiphen <- allbirdphen %>% filter(species == "bluti")  # first, we will select and extract cases that are of blue tits
 blutiphen <- blutiphen %>% select(year, site, box, fed, cs, suc)  # we also select columns that will help us collate both databases into one by identifying individuals (i.e.: year, site and box)
 
 # Selecting variables that will be useful for the project from the adult data
-adults <- alladults %>% filter(season != "winter", sex == "F")  # we will remove all data coming from adults captured in the winter (as we may not have their corresponding breeding season data), from which we have 410 observations removed, and keep data from females only.
+adults <- alladults %>% filter(season != "winter", sex == "F")  # we will remove all data coming from adults captured in the winter (as we may not have their corresponding breeding season data) and keep data from females only.
 
-# After this filtering, we remove 1979 observations (of male birds and of winter recordings), and we have a total of 1694 female adults ringed and identified of which we should have breeding success data in blutiphen (or, at least, of most of them)
+# After this filtering, we remove 2100 observations (of male birds and of winter recordings), and we have a total of 1828 recordings of female adults ringed and identified of which we should have breeding success data in blutiphen (or, at least, of most of them)
 blutiadults <- adults %>% select(ring, year, site, box, age)  # finally, we select the columns that we will use
 
 # Rearranging datasets in ascending order of years, site and nestboxes
@@ -45,37 +44,39 @@ blutiphen %>%
   # as also probably does 2021 site DOW, nestbox 4
 blutiadults %>%
   count(year, site, box) %>%
-  filter(n > 1)  # there seem to be 9 duplicates in blutiadults
+  filter(n > 1)  # there seem to be 10 duplicates in blutiadults
 # These duplicates are re-measurements of the same females' tarsus length and body mass but later on (1-5 days later).
 
 blutiadults %>%
   count(ring, year, site, box) %>%
-  filter(n > 1)  # In nestbox 7 of site BLG in year 2020 two females were catched for the same nest. What should we do about it?
+  filter(n > 1)  # In nestbox 7 of site SPD in year 2018 two females were caught for the same nest. What should we do about it?
 
 # I'm particularly interested in removing duplicates so that they don't complicate calculating the age of each individual in each event we've recorded of them
 # I'm not particularly worried about each case is removed for blutiadults as both will store the same information
 # However, for blutiphen I am interested in storing the re-lays rather than the failed breeding attempts (ask Hannah confirmation about this).
 # I'm gonna try to rearrange my dataset so that relays appear before failed attempts as the unique() function in dplyr will keep the first row it encounters.
+# I will keep the first rows because those are the ones for which most likely we have information on the females.
 
-blutiphen <- blutiphen %>% arrange(year, factor(site, levels = level_order), box, desc(suc))  # now, the first row in the duplicates should be the failed attempt
+blutiphen <- blutiphen %>% arrange(year, factor(site, levels = level_order), desc(suc), box)  # now, the first row in the duplicates should be the failed attempt
 uqblutiphen <- distinct(blutiphen, year, site, box, .keep_all = T) 
 
 uqblutiadults <- distinct(blutiadults, ring, year, site, box, .keep_all = T)
 
-# Now, I expect that phenological data will not be available for all individuals in blutiadults database, so I want to know how many cases (rows) in blutiphen lack their corresponding case in blutiadults:
+# Now, not all adults are caught (e.g. when broods fail before nestlings reach they 10, when one of the parents dies or abandons the nest, etc.), therefore there might be observations in `blutiphen` that do not have a corresponding match in the `blutiadults` database:
 # I will use the function anti_join() to find it out:
-no_bs_data <- uqblutiadults %>%
-  anti_join(uqblutiphen, by = c("year", "site", "box"))  # there are 5 rows present in blutiadults for which we do not have the data in blutiphen
-
 no_adult_data <- uqblutiphen %>%
-  anti_join(uqblutiadults, by = c("year", "site", "box"))  # there are 395 rows in  blutiphen for which we do not have data in blutiadults
+  anti_join(uqblutiadults, by = c("year", "site", "box"))  # there are 412 rows in  blutiphen for which we do not have data in blutiadults ( most likely, the female adult was not caught)
 # We store these problematic cases in their separate rows in case we want to reach for them in the future
 
-# For now, I will only include in the database the shared cases between blutiphen and blutiadults because lack of data of either of them is problematic
+no_bs_data <- uqblutiadults %>%
+  anti_join(uqblutiphen, by = c("year", "site", "box"))  # There are also two adult female birds for which there is no matching breeding data. These are exceptional cases in which females were found incubating empty nests. They will be removed.
+
+
+# I will only include in the database the shared cases between blutiphen and blutiadults because lack of data of either of them is problematic
 bluti1 <- uqblutiphen %>%
-  inner_join(uqblutiadults, by =c("year", "site", "box"))  # warning: many-to-many relationships due to duplicates in both blutiphen and blutiadults databases. For now, we will just keep duplicate rows, but we might have to delete them (especially the duplicates in blutiadults)
-# Once we remove the duplicates, the warning of many-to-many is gone
-# There are some cases for which breeding success is -999. This are cases were nests were predated and, instead of indicating 0 as fledgeling success, -999 was written down in case they needed to be excluded at some point.
+  inner_join(uqblutiadults, by =c("year", "site", "box"))  
+
+# There are some cases for which breeding success is -999. These are cases were nests were predated and, instead of indicating 0 as fledgeling success, -999 was written down in case they needed to be excluded at some point.
 # I will create a new bluti2 variable in which those cases show "NA" for fledgeling success
 bluti2 <- bluti1
 bluti2[which(bluti2$suc < 0),"suc"] <- NA
@@ -85,57 +86,56 @@ bluti2 <- bluti2[-which(bluti2$cs > 14),]  # There are only three cases in the e
 # As for the last one, I'd argue that is probably a very similar case except that the other female was never caught. I would also remove the whole line (fed and suc included) for this reason
 bluti2 <- bluti2 %>% relocate(ring, year, site, box, age, fed, cs, suc)
 
-nrow(bluti2)  # 1677 observations
+nrow(bluti2)  # 1677 observations without 2025 data, 1814 observations with 2025 data
 
-length(unique(bluti2$ring))  # 1148 females
+length(unique(bluti2$ring))  # 1148 females without 2025 data, 1220 females with it
 
 ### Brief dataset exploration ###
 
-unique(blutidf_3yo$year)  # Data from years 2014-2024
-blutidf_3yo %>%
+unique(bluti2$year)  # Data from years 2014-2025
+bluti2 %>%
   count(year) %>%
   filter(n > 1)  # Number of cases/recordings per years
 
-length(unique(blutidf_3yo$ring))  # We have recordings of a total of 1150 different female birds across the years, 1147 when we treat cases where suc < 0 as NAs 
+length(unique(bluti2$ring))  # We have recordings of a total of 1220 different female birds across the years
 
-nr_birds <- blutidf %>%
+nr_birds <- bluti2 %>%
   count(ring)  # storing how many times we have recorded each female (including duplicates)
-mean(nr_birds$n)  # On average, we have recorded 1.460801 breeding attempts of each female. 
+mean(nr_birds$n)  # On average, we have recorded 1.486885 breeding attempts of each female. 
 # Most females only breed one year (or we only have one recording on average of each female; maybe they've had more but we haven't noticed)
 
-max(nr_birds[, 2])  # the maximum number of breeding attempts recorded for the same female is 7...
+max(nr_birds[, 2])  # the maximum number of breeding attempts recorded for the same female is 8...
 nr_birds[which(nr_birds$n == max(nr_birds[, 2])),"ring"]  # ...and it's of female S921907
 
-str(blutidf)
-blutidf$suc <- as.numeric(blutidf$suc)
+str(bluti2)
+bluti2$suc <- as.numeric(bluti2$suc)
 
+# Number of birds first recorded as yearlings
+
+# Yearlings fall within age category 5, but in some cases people on the field mark them as age category 4 by mistake:
+
+age4 <- bluti2 %>% filter(age == 4)  # there are  8 recordings of which age=4, which are most likely yearlings
+
+age5 <- bluti2 %>% 
+  filter(age <= 5) %>%
+  group_by(ring) %>%
+  count(ring)  # 765 unique female birds were first identified as yearlings
+
+nrow(age5)
+
+age6 <- bluti2 %>% 
+  filter(age == 6) %>%
+  group_by(ring) %>%
+  count(ring)  # 697 unique females were captured as 2+ year olds
+
+only_age6 <- anti_join(x = age6, y = age5, by = "ring")  # 559 females were first identified as 2+ year olds (~37% of all females)
+
+nrow(only_age6)
+
+length(unique(only_age6$ring))
 
 
 ### Estimating birds' age ###
-
-# Finding individuals recorded at age 5 (code is modified from code provided by ChatGPT)
-birds_at_5 <- bluti2 %>%
-  filter(age == 5) %>%
-  select(ring) %>%
-  distinct()
-
-# Find individuals recorded at age 6 who were also recorded at age 5
-birds_at_6_with_5 <- bluti2 %>%
-  filter(age == 6) %>%
-  semi_join(birds_at_5, by = "ring") %>%
-  count(ring) 
-
-birds_at_only_6 <- bluti2 %>%
-  filter(age == 6) %>%
-  anti_join(birds_at_5, by = "ring") %>%
-  count(ring)   
-
-#bluti2_red <- bluti2 %>% anti_join(birds_at_only_6, by = "ring")  # smaller subdataset excluding birds first identified at age 6
-
-# There are 410 females of which we have recordings only when they're age 6 and not before; these could be problematic to include in the model
-age4 <- bluti2 %>% filter(age == 4)  # there are also 8 recordings of which age=4 (most likely age identification on the field was not possible)
-
-
 
 # Identifying ringed individuals that might have been ringed in the project sites
 
@@ -154,7 +154,8 @@ for (i in 1:nrow(bluti3)) {
     row <- which(nestlings$ring == ring_nr)
     bluti3[i,"ringedyear"] <- nestlings[row, "ringedyear"]
   }
-}  # There's only 30 (female) birds that hatched in the project and that were seen breeding in the nest boxes after that. Recruitment in the project is extremely low.
+}  
+length(which(!is.na(bluti3$ringedyear)))  # There's only 32 (female) birds that hatched in the project and that were seen breeding in the nest boxes after that. 
 
 # We know exactly the hatching year of 30 female birds. For the remaining ones (N = 1448), we will need to estimate their age based on how we aged them on the field.
 # Birds aged 5 are 1 year old, while birds aged 6 are 2 or more years old.
@@ -180,10 +181,10 @@ w <- as.data.frame(w)
 w$rings <- rownames(w)
 bluti3$w <- w$w[match(bluti3$ring, w$rings)]
 
-### Creating the definite dataset ###
+### Rearranging dataset ###
 
 blutidf <- bluti3 %>% 
-  select(ring, year, site, box, fed, cs, suc, hatchyear, age, yo, w) %>%
+  select(ring, year, site, box, fed, cs, suc, hatchyear, ringedyear, age, yo, w) %>%
   arrange(year, factor(site, levels = level_order), box)
 
 
@@ -218,7 +219,6 @@ for (i in 1:nrow(blutidf)) {
   }  
 }
 
-
 # I think it would be interesting to add a column in which fledgeling success is a proportion (proportion of eggs laid that were successfully fledged). 
 # This proportion will take the complete clutch into account, rather than the number of hatched eggs. However, it would be potentially more accurate to use the number of hatched eggs as base (maybe substracting the number of unhatched eggs found in V1 to the clutch size)
 
@@ -229,19 +229,19 @@ blutidf <- blutidf %>% relocate(suc_prop, .before=hatchyear)
 ### Creating a database for recordings of females that are only between 1 and 3 years old
 
 blutidf_3yo <- blutidf[which(blutidf$yo <= 3),]
-length(unique(blutidf_3yo$ring))  # We have 1147 females in total
+length(unique(blutidf_3yo$ring))  # We have 1219 females in total including 2025 data
 
-#write.csv(blutidf, "data/blutidf_II.csv")
-#write.xlsx(blutidf, "data/blutidf_II.xlsx") 
+#write.csv(blutidf, "data/blutidf_2025.csv")
+#write.xlsx(blutidf, "data/blutidf_2025.xlsx") 
 
-#write.csv(blutidf_3yo, "data/blutidf_3yo_II.csv")
-#write.xlsx(blutidf_3yo, "data/blutidf_3yo_II.xlsx")  # final database (with observations where females are only up to 3 years old)
+#write.csv(blutidf_3yo, "data/blutidf_3yo_2025.csv")
+#write.xlsx(blutidf_3yo, "data/blutidf_3yo_2025.xlsx")  # final database (with observations where females are only up to 3 years old)
 
 population <- blutidf_3yo %>% 
   count(year,yo) %>%
-  pivot_wider(names_from=year,values_from=c(n))
+  pivot_wider(names_from=year,values_from=c(n))  # There are many less 1-year-olds in 2025 than in any other year
 
-mean(blutidf$w)  # females live on average 2-3 years old on this study system
+mean(blutidf$w)  # females live on average 2.496141 years old on this study system
 
 #The number of observations of 3 years-old individuals per year is quite low overall, and it's almost always less than 20% of the population (2022 is the sole exception); birds aged 3 years old usually represent between 10 and 15% of the total of the (female) population.
 
@@ -249,7 +249,7 @@ mean(blutidf$w)  # females live on average 2-3 years old on this study system
 
 ### Creating separate data frames for each response variable ###
 
-length(which(is.na(blutidf_3yo$fed)))  # There are 305 observations for which we have no first egg lay date recordings
+length(which(is.na(blutidf_3yo$fed)))  # There are 351 observations for which we have no first egg lay date recordings
 
 blutidf_3yo[which(is.na(blutidf_3yo$fed)),]  
 
@@ -258,27 +258,32 @@ blutidf_3yo[which(is.na(blutidf_3yo$fed)),]
 
 fed_df <- blutidf_3yo %>% filter(!is.na(fed))
 
-nrow(fed_df) # In the separate dataset for fed there are 1233 (1221 before) observations...
+nrow(fed_df) # In the separate dataset for fed there are 1302 observations... (1233 without 2025 data)
 
-length(unique(fed_df$ring)) #... of 965 (955 before) unique (female) bird rings
+length(unique(fed_df$ring)) #... of 1006 unique (female) bird rings (965 without 2025 data)
 
-#write.csv(fed_df, "data/fed_df.csv")
+#write.csv(fed_df, "data/fed_df_2025.csv")
 
 cs_df <- blutidf_3yo %>% filter(!is.na(cs))
 
-nrow(cs_df)  # In the separate dataset for cs there are 1488 (1469 before) observations...
+nrow(cs_df)  # In the separate dataset for cs there are 1600 observations... (1488 without 2025 data)
 
-length(unique(cs_df$ring))  #... of 1117 (1102 before) unique (female) bird rings
+length(unique(cs_df$ring))  #... of 1188 unique (female) bird rings (1117 without 2025 data)
 
-#write.csv(cs_df, "data/cs_df.csv")
+#write.csv(cs_df, "data/cs_df_2025.csv")
 
 suc_df <- blutidf_3yo %>% filter(!is.na(suc))
 
-nrow(suc_df)  # In the separate dataset for suc there are 1303 observations...
+nrow(suc_df)  # In the separate dataset for suc there are 1413 observations... (1303 without 2025 data)
 
-length(unique(suc_df$ring))  #... of 1008 unique (female) bird rings
+length(unique(suc_df$ring))  #... of 1079 unique (female) bird rings (1008 without 2025 data)
 
-#write.csv(suc_df, "data/suc_df.csv")
+#write.csv(suc_df, "data/suc_df_2025.csv")
 
 
+# Now, I need to match each observation in the dataset to its corresponding total foliage score value:
+
+habitat_foliage_scores <- read.csv("data/Habitat_SiteII.csv")
+
+fed_df$total_FS <- habitat_foliage_scores[match(fed_df$site, habitat_foliage_scores$Site),"Total"]
 

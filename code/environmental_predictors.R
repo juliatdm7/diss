@@ -7,8 +7,8 @@ library(tidyr)
 
 ### First, loading blue tit databases:
 
-blutidf <- read.csv("data/blutidf.csv")
-blutidf_3yo <- read.csv("data/blutidf_3yo.csv")
+blutidf <- read.csv("data/blutidf_2025.csv")
+blutidf_3yo <- read.csv("data/blutidf_3yo_2025.csv")
 site_occupancy <- read.csv("data/site_occupancy.csv")
 
 
@@ -18,13 +18,9 @@ sites <- read.csv("data/site_detailsII.csv")
 
 environment <- data.frame(sites = sites$site, longitude = sites$Mean.Long, latitude = sites$Mean.Lat, elevation = sites$Mean.Elev)
 
-environment$occupancy <- site_occupancy$occupancy
-
 ### Elevation ###
 
 sites <- read.csv("data/site_detailsII.csv")
-blutidf <- read.csv("data/blutidf.csv")
-blutidf_3yo <- read.csv("data/blutidf_3yo.csv")
 
 site_elevation <- sites %>% select(site, Mean.Elev)
 blutidf$elevation <- site_elevation$Mean.Elev[match(blutidf$site, site_elevation$site)] 
@@ -33,7 +29,7 @@ blutidf_3yo$elevation <- site_elevation$Mean.Elev[match(blutidf_3yo$site, site_e
 #### Tree composition ####
 
 habitat_foliage_scores <- read.csv("data/Habitat_SiteII.csv")
-habitat <- read.csv("data/Habitats.csv")
+habitat <- read.csv("data/HabitatsII.csv")
 
 # 1. Absolute number of oaks per site
 
@@ -85,6 +81,7 @@ trees_per_box$oak <- habitat$l_oak + habitat$m_oak + habitat$s_oak
 trees_per_box$pine <- habitat$l_pine + habitat$m_pine + habitat$s_pine
 trees_per_box$rose <- habitat$X6_rose 
 trees_per_box$rowan <- habitat$m_rowan + habitat$s_rowan + habitat$X6_rowan
+trees_per_box$sycamore <- habitat$s_sycamore + habitat$l_sycamore + habitat$m_sycamore + habitat$X6_sycamore
 trees_per_box$whitebeam <- habitat$m_whitebeam + habitat$s_whitebeam
 trees_per_box$willow <- habitat$l_willow + habitat$m_willow + habitat$s_willow + habitat$z_willow + habitat$X6_willow + habitat$X21_willow
 trees_per_box$yew <- habitat$m_yew + habitat$s_yew
@@ -207,32 +204,43 @@ trees$oak_proportion <- trees$oak/trees$total_trees
 
 environment$proportion_oak <- trees$oak_proportion
 
+# 3. Absolute number of oak and birch (combined)
 
-# 3. Absolute number of oak, sycamore and birch (combined)
+trees$oak_birch <- trees$birch + trees$oak
+
+environment$oak_birch <- trees$oak_birch
+
+# 4. Proportion of oak and birch
+
+trees$proportion_oak_birch <- trees$oak_birch/trees$total_trees
+
+environment$proportion_oak_birch <- trees$proportion_oak_birch
+
+# 5. Absolute number of oak, sycamore and birch (combined)
 
 trees$oak_birch_sycamore <- trees$birch + trees$oak + trees$sycamore
 
 environment$oak_birch_sycamore <- trees$oak_birch_sycamore
 
-# 4. Proportion of oak, sycamore and birch
+# 6. Proportion of oak, sycamore and birch
 
 trees$proportion_oak_birch_sycamore <- trees$oak_birch_sycamore/trees$total_trees
 
 environment$proportion_oak_birch_sycamore <- trees$proportion_oak_birch_sycamore
 
-# 5. Tree diversity (at genus level)
+# 7. Tree diversity (at genus level)
 
 library(vegan)
 
 trees <- trees %>% relocate(c(conifer, other), .after = yew)
 
-# I will be using the Simpson's Index to calculate tree diversity, although I could use other index. Need to justify why one or the other
+# I will be using the Simpson's Index to calculate tree diversity
 
 tree.simp <- diversity(trees[,2:24],index = "simpson")  # I'm excluding the columns "other" and "conifers" because I don't exactly know what taxa they comprise and whether said taxa (or some of it) are already present in other columns (f.e. pine trees)
 
 environment$tree_diversity_simpson <- tree.simp
 
-# 6. Total foliage score 
+# 8. Total foliage score 
 
 level_order <- c("EDI", "RSY", "FOF", "BAD", "LVN", "DOW", "GLF", "SER", "MCH", "PTH", "STY", "BIR", "DUN", "BLG", "PIT", "KCK", "KCZ", "BLA", "CAL", "DNM", "DNC", "DNS", "DLW", "CRU", "NEW", "HWP", "INS", "FSH", "RTH", "AVI", "AVN", "CAR", "SLS", "TOM", "DAV", "ART", "MUN", "FOU", "ALN", "DEL", "TAI", "SPD", "OSP", "DOR")
 habitat_foliage_scores <- habitat_foliage_scores %>% arrange(factor(Site, levels = level_order))
@@ -255,27 +263,27 @@ ggplot(score, aes(x=Site, y=value, fill = foliage_score)) +
 
 environment$total_FS <- habitat_foliage_scores[match(environment$sites, habitat_foliage_scores$Site), "Total"]
 
-# 7. Oak foliage score
+# 9. Oak foliage score
 
 environment$oak_FS <- habitat_foliage_scores[match(environment$sites, habitat_foliage_scores$Site),"Oak_FS"]
 
-# 8. Birch foliage score
+# 10. Birch foliage score
 
 environment$birch_FS <- habitat_foliage_scores[match(environment$sites, habitat_foliage_scores$Site),"Birch_FS"]
 
-# 9. Sycamore foliage score
+# 11. Sycamore foliage score
 
 environment$sycamore_FS <- habitat_foliage_scores[match(environment$sites, habitat_foliage_scores$Site),"Sycamore_FS"]
 
-# 10. Willow foliage score
+# 12. Willow foliage score
 
 environment$willow_FS <- habitat_foliage_scores[match(environment$sites, habitat_foliage_scores$Site),"Willow_FS"]
 
-# 11. Beech foliage score
+# 13. Beech foliage score
 
 environment$beech_FS <- habitat_foliage_scores[match(environment$sites, habitat_foliage_scores$Site),"Beech_FS"]
 
-# 8. Oak, sycamore and birch foliage score
+# 14. Oak, sycamore and birch foliage score
 
 oak_birch_sycamore_FS <- habitat_foliage_scores %>% 
   select(c(Site,Oak_FS,Birch_FS,Sycamore_FS)) %>%
@@ -283,18 +291,43 @@ oak_birch_sycamore_FS <- habitat_foliage_scores %>%
 
 environment$oak_birch_sycamore_FS <- oak_birch_sycamore_FS[match(environment$sites, oak_birch_sycamore_FS$Site),"sum"]
 
-# 9. Oak foliage score (proportion)
+# 15. Oak and birch foliage score
+
+oak_birch_FS <- habitat_foliage_scores %>% 
+  select(c(Site,Oak_FS,Birch_FS)) %>%
+  mutate(sum = Oak_FS + Birch_FS)
+
+environment$oak_birch_FS <- oak_birch_FS[match(environment$sites, oak_birch_FS$Site),"sum"]
+
+# 16. Oak foliage score (proportion)
 
 environment$oak_FS_prop <- habitat_foliage_scores[match(environment$sites, habitat_foliage_scores$Site), "Oak_prop"]
 
-# 10. Oak, sycamore and birch foliage score (proportion)
+# 17. Oak, sycamore and birch foliage score (proportion)
 
 oak_birch_sycamore_FS_prop <- habitat_foliage_scores %>% 
   select(c(Site,Oak_prop,Birch_prop,Sycamore_prop)) %>%
-  mutate(sum = Oak_prop + Birch_prop, Sycamore_prop)
+  mutate(sum = Oak_prop + Birch_prop + Sycamore_prop)
 
 environment$oak_birch_sycamore_FS_prop <- oak_birch_sycamore_FS_prop[match(environment$sites, oak_birch_sycamore_FS_prop$Site),"sum"]
 
 
-# 11. Urbanisation
+# 18. Oak and birch foliage score (proportion)
+
+oak_birch_FS_prop <- habitat_foliage_scores %>% 
+  select(c(Site,Oak_prop,Birch_prop,Sycamore_prop)) %>%
+  mutate(sum = Oak_prop + Birch_prop)
+
+environment$oak_birch_FS_prop <- oak_birch_FS_prop[match(environment$sites, oak_birch_FS_prop$Site),"sum"]
+
+# 19. Deciduous trees foliage score:
+
+environment$alder_FS <- habitat_foliage_scores[match(environment$sites, habitat_foliage_scores$Site),"Alder_FS"]
+environment$ash_FS <- habitat_foliage_scores[match(environment$sites, habitat_foliage_scores$Site),"Ash_FS"]
+environment$aspen_FS <- habitat_foliage_scores[match(environment$sites, habitat_foliage_scores$Site),"Aspen_FS"]
+environment$elm_FS <- habitat_foliage_scores[match(environment$sites, habitat_foliage_scores$Site),"Elm_FS"]
+environment$OthDecid_FS <- habitat_foliage_scores[match(environment$sites, habitat_foliage_scores$Site),"OthDecid_FS"]
+
+environment <- environment %>% 
+  mutate(all_decid_FS = alder_FS + ash_FS + aspen_FS + beech_FS + birch_FS + elm_FS + oak_FS + sycamore_FS + willow_FS + OthDecid_FS)
 

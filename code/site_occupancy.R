@@ -126,7 +126,7 @@ environment[which(environment$sites =="DOR"), "new_site_occ"] <- mean(na.omit(oc
 
 environment$old_occ <- site_occupancy$occupancy  # Checking this to compare how different old estimated occupation vs. new estimated occupation are
 
-environment <- environment[,-5]
+#environment <- environment[,-5]
 
 ################################
 ### UNUSED CODE. DO NOT RUN. ###

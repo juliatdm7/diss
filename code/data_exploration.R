@@ -1278,7 +1278,7 @@ library(ggstatsplot)
 
 # First, I will do a very rude all vs. all correlation:
 
-env <- environment[,3:21]
+env <- environment[,3:32]
 
 corrplot1 <- ggstatsplot::ggcorrmat(
   data = env,
@@ -1289,7 +1289,7 @@ corrplot1 <- ggstatsplot::ggcorrmat(
 
 # Now, I would like to see how different oak-related variables correlate with each other:
 
-oak_vars <- environment[,c(10, 11, 14, 20)]
+oak_vars <- env[,c(5, 6, 13, 20)]  # total number of oak trees, proportion of oak trees, oak foliage score and proportion of oak foliage score
 
 ggstatsplot::ggcorrmat(
   data = oak_vars,

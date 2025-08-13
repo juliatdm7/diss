@@ -30,6 +30,7 @@ library(ggstatsplot)
 
 alladults <- read.csv("C:/Users/julia/OneDrive - University of Edinburgh/EEB_MSc_UEd/Dissertation/diss/data/AdultsII.csv")  # loading complete adult blue tits data 
 allbirdphen <- read.csv("C:/Users/julia/OneDrive - University of Edinburgh/EEB_MSc_UEd/Dissertation/diss/data/Bird_PhenologyII.csv")  # loading complete phenology data 
+nestlings <- read.csv("C:/Users/julia/OneDrive - University of Edinburgh/EEB_MSc_UEd/Dissertation/diss/data/NestlingsII.csv")
 blutiphen <- allbirdphen %>% filter(species == "bluti")  # selecting and extracting blue tit cases
 blutidf <- read.csv("C:/Users/julia/OneDrive - University of Edinburgh/EEB_MSc_UEd/Dissertation/diss/data/blutidf_2025.csv")
 blutidf_3yo <- read.csv("C:/Users/julia/OneDrive - University of Edinburgh/EEB_MSc_UEd/Dissertation/diss/data/blutidf_3yo_2025.csv")
@@ -1264,7 +1265,7 @@ blutiphen$suc <- as.numeric(blutiphen$suc)
 
 rv <- blutiphen[,c(4,5,6)]
 
-corrplot2 <- ggstatsplot::ggcorrmat(
+ggstatsplot::ggcorrmat(
   data = rv,
   type = "nonparametric", # parametric for Pearson, nonparametric for Spearman's correlation
   colors = c("darkred", "white", "steelblue") # change default colors
@@ -1283,7 +1284,7 @@ blutiphen$suc <- as.numeric(blutiphen$suc)
 
 rv <- blutiphen[,c(4,5,6)]
 
-corrplot2 <- ggstatsplot::ggcorrmat(
+ggstatsplot::ggcorrmat(
   data = rv,
   type = "nonparametric", # parametric for Pearson, nonparametric for Spearman's correlation
   colors = c("darkred", "white", "steelblue") # change default colors
@@ -1295,6 +1296,73 @@ corrplot2 <- ggstatsplot::ggcorrmat(
 ### 10. Correlation between male and female age
 
 ```{r}
+alladults <- alladults %>% filter(season != "winter")
+
+nestlings <- nestlings %>%
+  select(ring, year, site, box) %>%
+  rename(ringedyear = year) %>%
+  arrange(ringedyear, site, box)
+
+alladults$ringedyear <- NA
+ring_nr <- 0
+for (i in 1:nrow(alladults)) {
+  if (alladults[i,"ring"] %in% nestlings$ring) {
+    ring_nr <- as.character(alladults[i,"ring"])
+    row <- which(nestlings$ring == ring_nr)
+    alladults[i,"ringedyear"] <- nestlings[row, "ringedyear"]
+  }
+}
+
+
+indsx <- data.frame(ring = sort(unique(alladults$ring)), firstcaught = tapply(alladults$year, alladults$ring, min), firstageclass = tapply(alladults$age, alladults$ring, min))  # defining a new dataframe with each unique bird, the year they were first caught and the age they were
+indsx$hatchyear <- ifelse(indsx$firstageclass==6, (indsx$firstcaught - 2), (indsx$firstcaught - 1))  # calculating an estimated hatch year based on the age class when first caught (assume age class 4 were yearlings) 
+alladults$hatchyear <- indsx$hatchyear[match(alladults$ring, indsx$ring)]  # match hatch year back to original dataframe
+for (i in 1:nrow(alladults)) {
+  if (!is.na(alladults[i,"ringedyear"])) {
+    alladults[i, "hatchyear"] <- alladults[i, "ringedyear"]
+  }
+}
+alladults$yo <- alladults$year - alladults$hatchyear  # calculating age in years old
+
+
+### Trying to create a "age at last breeding attempt" column ###
+
+w <- tapply(alladults$yo, alladults$ring, max)
+w <- as.data.frame(w)
+w$rings <- rownames(w)
+alladults$w <- w$w[match(alladults$ring, w$rings)]
+
+age_df <- alladults[,c(2,3,4,6,19)]
+
+age_df <- age_df %>% 
+  arrange(year, factor(site, levels = level_order), box)
+
+dupes <- age_df %>% summarise(n = dplyr::n(), .by = c(year, site, box, sex)) %>% filter(n > 1L) 
+
+age_df <- age_df %>% distinct(year, site, box, sex, .keep_all = T)  # keeping unique recordings (one of the duplicates is removed, I don't choose which one; definitely not the best course of action, but it's a place to start)
+
+age_wide <- age_df %>% pivot_wider(names_from=sex,values_from=c(yo))
+
+age_wide <- age_wide %>% 
+  rename(yo_F = F) %>%
+  rename(yo_M = M)
+
+head(age_wide)
+
+cor.test(age_wide$yo_M, age_wide$yo_F, method = "spearman", exact = F)
+
+ggplot(age_wide, aes(x=yo_F, y=yo_M)) +
+  geom_jitter(alpha = 0.25) +
+  geom_smooth(method='lm', formula= y~x, col="red") +
+  theme_bw() +
+  labs(x = "Age of the female in a pair (y.o.)", y = "Age of the male in a pair (y.o.)") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(margin = unit(c(1, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))  +
+  scale_x_continuous(breaks = seq(1,7,1)) +
+  scale_y_continuous(breaks = seq(1,7,1))
 
 ```
 

@@ -24,6 +24,7 @@ library(gridExtra)
 library(vegan)
 library(tidyr)
 library(ggplot2)
+library(ggstatsplot)
 
 # Loading baseline data sets
 
@@ -1183,4 +1184,117 @@ grid.arrange(fedplot3,csplot3,sucplot3, ncol=3, nrow=1)
 ```
 
 
+
+### 8. Correlations between habitat/site variables
+
+```{r}
+# I would like to see how different oak-related variables correlate with each other:
+
+env <- environment[,3:29]
+
+head(env)
+
+oak_vars <- env[,c(3, 4, 11, 18)]  # total number of oak trees, proportion of oak trees, oak foliage score and proportion of oak foliage score
+
+ggstatsplot::ggcorrmat(
+  data = oak_vars,
+  type = "parametric", # parametric for Pearson, nonparametric for Spearman's correlation
+  colors = c("darkred", "white", "steelblue") # change default colors
+)  # Everything is highly positively correlated and significant, which I guess should be expected but it is still somewhat surprising to me (how much new information does oak foliage score provides in comparison to the other oak-related predictors?)
+
+# Now, I would like to check how other trees (i.e. willow, birch and sycamore) variables correlate with each other
+
+trees_bars <- env[,c(5,6,7,8,17,16,20,19,10)]  
+
+ggstatsplot::ggcorrmat(
+  data = trees_bars,
+  type = "parametric", # parametric for Pearson, nonparametric for Spearman's correlation
+  colors = c("darkred", "white", "steelblue") # change default colors
+)  
+
+# Once this is done, I will do correlations only with overall FS, individual FS and other variables:
+
+predictors <- env[,c(10,1,2,9,27,11,12,13,14,17,16)]
+
+pairs(predictors)
+
+ggstatsplot::ggcorrmat(
+  data = predictors,
+  type = "nonparametric", # parametric for Pearson, nonparametric for Spearman's correlation
+  colors = c("darkred", "white", "steelblue") # change default colors
+)
+
+cor.test(environment$tree_diversity_simpson, environment$total_FS, method = "spearman")
+
+# Checking how correlated overall FS and all deciduous trees FS are:
+
+cor.test(environment$all_decid_FS, environment$total_FS, method = "spearman")
+
+ggplot(environment, aes(x=total_FS, y=all_decid_FS)) +
+  geom_point() +
+  geom_smooth(method='lm', formula= y~x) +
+  theme_bw() +
+  labs(x = "Total foliage score", y = "Total foliage score of all deciduous taxa") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(margin = unit(c(1, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) 
+
+# Checking how correlated overall FS and oak, birch and sycamore trees FS are:
+
+cor.test(environment$total_FS, environment$oak_birch_sycamore_FS, method = "spearman")
+
+ggplot(environment, aes(x=total_FS, y=oak_birch_sycamore_FS)) +
+  geom_point() +
+  geom_smooth(method='lm', formula= y~x) +
+  theme_bw() +
+  labs(x = "Total foliage score", y = "Oak, birch and sycamore foliage score") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(margin = unit(c(1, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) 
+
+# Checking for correlation between response variables
+
+blutiphen[which(blutiphen$suc < 0),"suc"] <- NA
+
+blutiphen$suc <- as.numeric(blutiphen$suc)
+
+rv <- blutiphen[,c(4,5,6)]
+
+corrplot2 <- ggstatsplot::ggcorrmat(
+  data = rv,
+  type = "nonparametric", # parametric for Pearson, nonparametric for Spearman's correlation
+  colors = c("darkred", "white", "steelblue") # change default colors
+)
+
+```
+
+
+
+### 9. Correlations between response variables
+
+```{r}
+blutiphen[which(blutiphen$suc < 0),"suc"] <- NA
+
+blutiphen$suc <- as.numeric(blutiphen$suc)
+
+rv <- blutiphen[,c(4,5,6)]
+
+corrplot2 <- ggstatsplot::ggcorrmat(
+  data = rv,
+  type = "nonparametric", # parametric for Pearson, nonparametric for Spearman's correlation
+  colors = c("darkred", "white", "steelblue") # change default colors
+)
+```
+
+
+
+### 10. Correlation between male and female age
+
+```{r}
+
+```
 

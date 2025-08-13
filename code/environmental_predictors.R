@@ -287,7 +287,7 @@ environment$beech_FS <- habitat_foliage_scores[match(environment$sites, habitat_
 
 oak_birch_sycamore_FS <- habitat_foliage_scores %>% 
   select(c(Site,Oak_FS,Birch_FS,Sycamore_FS)) %>%
-  mutate(sum = Oak_FS + Birch_FS, Sycamore_FS)
+  mutate(sum = Oak_FS + Birch_FS + Sycamore_FS)
 
 environment$oak_birch_sycamore_FS <- oak_birch_sycamore_FS[match(environment$sites, oak_birch_sycamore_FS$Site),"sum"]
 

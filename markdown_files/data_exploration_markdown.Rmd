@@ -31,7 +31,6 @@ library(ggstatsplot)
 alladults <- read.csv("C:/Users/julia/OneDrive - University of Edinburgh/EEB_MSc_UEd/Dissertation/diss/data/AdultsII.csv")  # loading complete adult blue tits data 
 allbirdphen <- read.csv("C:/Users/julia/OneDrive - University of Edinburgh/EEB_MSc_UEd/Dissertation/diss/data/Bird_PhenologyII.csv")  # loading complete phenology data 
 nestlings <- read.csv("C:/Users/julia/OneDrive - University of Edinburgh/EEB_MSc_UEd/Dissertation/diss/data/NestlingsII.csv")
-blutiphen <- allbirdphen %>% filter(species == "bluti")  # selecting and extracting blue tit cases
 blutidf <- read.csv("C:/Users/julia/OneDrive - University of Edinburgh/EEB_MSc_UEd/Dissertation/diss/data/blutidf_2025.csv")
 blutidf_3yo <- read.csv("C:/Users/julia/OneDrive - University of Edinburgh/EEB_MSc_UEd/Dissertation/diss/data/blutidf_3yo_2025.csv")
 fed_df <- read.csv("C:/Users/julia/OneDrive - University of Edinburgh/EEB_MSc_UEd/Dissertation/diss/data/fed_df_2025.csv")  # loading first egg lay date data
@@ -1188,14 +1187,14 @@ grid.arrange(fedplot3,csplot3,sucplot3, ncol=3, nrow=1)
 
 ### 8. Correlations between habitat/site variables
 
-```{r}
+```{r, fig.align='center', fig.width=12, fig.height=10}
 # I would like to see how different oak-related variables correlate with each other:
 
 env <- environment[,3:29]
 
 head(env)
 
-oak_vars <- env[,c(3, 4, 11, 18)]  # total number of oak trees, proportion of oak trees, oak foliage score and proportion of oak foliage score
+oak_vars <- env[,c(4,5,12,19)]  # total number of oak trees, proportion of oak trees, oak foliage score and proportion of oak foliage score
 
 ggstatsplot::ggcorrmat(
   data = oak_vars,
@@ -1205,7 +1204,7 @@ ggstatsplot::ggcorrmat(
 
 # Now, I would like to check how other trees (i.e. willow, birch and sycamore) variables correlate with each other
 
-trees_bars <- env[,c(5,6,7,8,17,16,20,19,10)]  
+trees_bars <- env[,c(6,7,8,9,18,17,21,20,11)]  
 
 ggstatsplot::ggcorrmat(
   data = trees_bars,
@@ -1215,9 +1214,7 @@ ggstatsplot::ggcorrmat(
 
 # Once this is done, I will do correlations only with overall FS, individual FS and other variables:
 
-predictors <- env[,c(10,1,2,9,27,11,12,13,14,17,16)]
-
-pairs(predictors)
+predictors <- env[,c(11,2,3,10,27,12,13,14,15,18,17)]
 
 ggstatsplot::ggcorrmat(
   data = predictors,
@@ -1257,32 +1254,19 @@ ggplot(environment, aes(x=total_FS, y=oak_birch_sycamore_FS)) +
         axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
         axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) 
 
-# Checking for correlation between response variables
-
-blutiphen[which(blutiphen$suc < 0),"suc"] <- NA
-
-blutiphen$suc <- as.numeric(blutiphen$suc)
-
-rv <- blutiphen[,c(4,5,6)]
-
-ggstatsplot::ggcorrmat(
-  data = rv,
-  type = "nonparametric", # parametric for Pearson, nonparametric for Spearman's correlation
-  colors = c("darkred", "white", "steelblue") # change default colors
-)
-
 ```
-
 
 
 ### 9. Correlations between response variables
 
-```{r}
+```{r, fig.align='center', fig.width=12, fig.height=10}
+blutiphen <- allbirdphen %>% filter(species == "bluti")  # selecting and extracting blue tit cases
+
 blutiphen[which(blutiphen$suc < 0),"suc"] <- NA
 
 blutiphen$suc <- as.numeric(blutiphen$suc)
 
-rv <- blutiphen[,c(4,5,6)]
+rv <- blutiphen[,c(11,13,36)]  # selecting first egg lay date, clutch size and number of fledgelings
 
 ggstatsplot::ggcorrmat(
   data = rv,
@@ -1290,18 +1274,19 @@ ggstatsplot::ggcorrmat(
   colors = c("darkred", "white", "steelblue") # change default colors
 )
 ```
+
 
 
 
 ### 10. Correlation between male and female age
 
-```{r}
+```{r, fig.align='center'}
 alladults <- alladults %>% filter(season != "winter")
 
 nestlings <- nestlings %>%
   select(ring, year, site, box) %>%
-  rename(ringedyear = year) %>%
-  arrange(ringedyear, site, box)
+  dplyr::rename(ringedyear = year) %>%
+  dplyr::arrange(ringedyear, site, box)
 
 alladults$ringedyear <- NA
 ring_nr <- 0
@@ -1335,17 +1320,19 @@ alladults$w <- w$w[match(alladults$ring, w$rings)]
 age_df <- alladults[,c(2,3,4,6,19)]
 
 age_df <- age_df %>% 
-  arrange(year, factor(site, levels = level_order), box)
+  dplyr::arrange(year, factor(site, levels = level_order), box)
 
-dupes <- age_df %>% summarise(n = dplyr::n(), .by = c(year, site, box, sex)) %>% filter(n > 1L) 
+dupes <- age_df %>% 
+  dplyr::summarise(n = dplyr::n(), .by = c(year, site, box, sex)) %>% 
+  dplyr::filter(n > 1L) 
 
 age_df <- age_df %>% distinct(year, site, box, sex, .keep_all = T)  # keeping unique recordings (one of the duplicates is removed, I don't choose which one; definitely not the best course of action, but it's a place to start)
 
 age_wide <- age_df %>% pivot_wider(names_from=sex,values_from=c(yo))
 
 age_wide <- age_wide %>% 
-  rename(yo_F = F) %>%
-  rename(yo_M = M)
+  dplyr::rename(yo_F = F) %>%
+  dplyr::rename(yo_M = M)
 
 head(age_wide)
 

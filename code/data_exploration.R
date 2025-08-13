@@ -1440,7 +1440,7 @@ age_wide <- age_wide %>%
 
 cor.test(age_wide$yo_M, age_wide$yo_F, method = "spearman", exact = F)  
 
-# It appears that, when computing a Pearson correlation test (which I'm not sure it's the best), male age and female age of the same year, site and nest box (age of the female and the male withing the same pair) show a significant positive correlation (cor = 0.2558343, p-value < 2.2e-16)
+# It appears that, when computing a Spearman's rank correlation, male age and female age of the same year, site and nest box (age of the female and the male withing the same pair) show a significant positive correlation (cor = 0.2807076, p-value < 2.2e-16)
 # However, it's really not a 1 by 1 correlation nor is it particularly strong.
 
 ggplot(age_wide, aes(x=yo_F, y=yo_M)) +

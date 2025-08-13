@@ -1027,89 +1027,7 @@ Even when comparing between birds first caught as yearlings and birds caught onl
 
 ### 7. Exploring predictors
 
-#### a) Nest box occupancy
-
-```{r, fig.align='center'}
-ggplot(environment, aes(x=sites, y=new_site_occ)) +
-  geom_point() +
-  theme_bw() +
-  labs(x = "Sites", y = "Average occupancy") +
-  theme(axis.title = element_text(size = 13), 
-        axis.text = element_text(size = 11),
-        axis.text.x = element_text(angle = 90, margin = unit(c(3, 0, 0, 0), "mm")), 
-        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
-        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
-  scale_x_discrete(limits = level_order) 
-```
-Average nest box occupation does not seem to follow a latitudinal pattern, but it is clear that some sites have very low occupancy (DNM, DNC, DNS, DLW, SLS...) while others have a high occupancy (EDI, FOF, GLF...). However, it might not be correlated in any way to breeding success.
-
-#### b) Elevation
-
-```{r, fig.align='center'}
-ggplot(environment, aes(x=sites, y=elevation)) +
-  geom_point() +
-  theme_bw() +
-  labs(x = "Sites", y = "Average site elevation") +
-  theme(axis.title = element_text(size = 13), 
-        axis.text = element_text(size = 11),
-        axis.text.x = element_text(angle = 90, margin = unit(c(3, 0, 0, 0), "mm")), 
-        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
-        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
-  scale_x_discrete(limits = level_order) 
-```
-Although very roughly, there may be some degree of correlation between average nest occupancy and average site elevation:
-
-```{r, fig.align='center'}
-ggplot(environment, aes(x=elevation, y=new_site_occ)) +
-  geom_point() +
-  theme_bw() +
-  labs(x = "Elevation", y = "Average occupancy") +
-  theme(axis.title = element_text(size = 13), 
-        axis.text = element_text(size = 11),
-        axis.text.x = element_text(margin = unit(c(1, 0, 0, 0), "mm")), 
-        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
-        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) 
-
-
-```
-It appears that as elevation increases, nest occupancy decreases. Although it might not be directly relevant to environment characterisation, it will most likely be something interesting to take into account as low nest occupancy might imply less competition over available resources, and therefore this could compensate for a bad quality site (e.g. if the site provides poor resources, but these resources have to be split only among a few birds, they could potentially perform better than birds that live in a very good quality site but that have to compete with more birds for access to the available resources, especially if they are not good competitors).
-
-#### c) Number of oak trees
-
-```{r, fig.align='center'}
-ggplot(environment, aes(x=sites, y=TOTAL_oak)) +
-  geom_point() +
-  theme_bw() +
-  labs(x = "Sites", y = "Absolute number of oaks") +
-  theme(axis.title = element_text(size = 13), 
-        axis.text = element_text(size = 11),
-        axis.text.x = element_text(angle = 90, margin = unit(c(3, 0, 0, 0), "mm")), 
-        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
-        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
-  scale_x_discrete(limits = level_order)
-
-ggplot(environment, aes(x=elevation, y=TOTAL_oak)) +
-  geom_point() +
-  theme_bw() +
-  labs(x = "Elevation", y = "Absolute number of oaks") +
-  theme(axis.title = element_text(size = 13), 
-        axis.text = element_text(size = 11),
-        axis.text.x = element_text(margin = unit(c(1, 0, 0, 0), "mm")), 
-        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
-        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) 
-
-ggplot(environment, aes(x=TOTAL_oak, y=new_site_occ)) +
-  geom_point() +
-  theme_bw() +
-  labs(x = "Absolute number of oaks", y = "Average occupancy") +
-  theme(axis.title = element_text(size = 13), 
-        axis.text = element_text(size = 11),
-        axis.text.x = element_text(margin = unit(c(1, 0, 0, 0), "mm")), 
-        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
-        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) 
-```
-
-#### d) 
+In depth exploration of environmental predictors can be found in the markdown file `Exploring_potential_environmental_variables.html`, which was created as a report to my supervisors of said exploration.
 
 ### 7. Breeding traits vs. environmental predictors
 
@@ -1263,4 +1181,6 @@ sucplot3 <- ggplot(suc_df, aes(x=oak_birch_sycamore_FS, y=suc)) +
 grid.arrange(fedplot3,csplot3,sucplot3, ncol=3, nrow=1)
 
 ```
+
+
 

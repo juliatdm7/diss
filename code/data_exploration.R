@@ -27,8 +27,6 @@ habitat <- read.csv("C:/Users/julia/OneDrive - University of Edinburgh/EEB_MSc_U
 habitat_foliage_scores <- read.csv("C:/Users/julia/OneDrive - University of Edinburgh/EEB_MSc_UEd/Dissertation/diss/data/Habitat_SiteII.csv")  
 environment <- read.csv("data/environment_2025.csv")
 
-caterpillars <- read.csv("data/Lepidoptera_Abundance.csv")
-
 
 ### Raw data and mean+se values for each breeding trait without capping observations based on age ###
 
@@ -1278,7 +1276,7 @@ library(ggstatsplot)
 
 # First, I will do a very rude all vs. all correlation:
 
-env <- environment[,3:32]
+env <- environment[,3:29]
 
 corrplot1 <- ggstatsplot::ggcorrmat(
   data = env,
@@ -1289,7 +1287,7 @@ corrplot1 <- ggstatsplot::ggcorrmat(
 
 # Now, I would like to see how different oak-related variables correlate with each other:
 
-oak_vars <- env[,c(5, 6, 13, 20)]  # total number of oak trees, proportion of oak trees, oak foliage score and proportion of oak foliage score
+oak_vars <- env[,c(3, 4, 11, 18)]  # total number of oak trees, proportion of oak trees, oak foliage score and proportion of oak foliage score
 
 ggstatsplot::ggcorrmat(
   data = oak_vars,
@@ -1299,17 +1297,17 @@ ggstatsplot::ggcorrmat(
 
 # Now, I would like to check how other trees (i.e. willow, birch and sycamore) variables correlate with each other
 
-trees_bars <- environment[,c(12,13,19,21)]
+trees_bars <- env[,c(5,6,7,8,17,16,20,19,10)]  
 
 ggstatsplot::ggcorrmat(
   data = trees_bars,
   type = "parametric", # parametric for Pearson, nonparametric for Spearman's correlation
   colors = c("darkred", "white", "steelblue") # change default colors
-)  # Here correlations are still significant but not as strong (particularly, the correlations between the number of oaks, birches and sycamores combined and any kind of combined FS are not very strong: 0.37 and 0.49. I would like to interpret this like the foliage score is giving a bit more information, maybe)
+)  
 
 # Once this is done, I will do correlations only with overall FS, individual FS and other variables:
 
-predictors <- environment[,c(4,5,10,11,17,19,20,21)]
+predictors <- env[,c(10,1,2,9,27,11,12,13,14,17,16)]
 
 pairs(predictors)
 
@@ -1320,19 +1318,6 @@ ggstatsplot::ggcorrmat(
 )
 
 cor.test(environment$tree_diversity_simpson, environment$total_FS, method = "spearman")
-
-cor.test(environment$tree_diversity_simpson, environment$total_FS, method = "spearman")
-
-# I'll go through all significant correlations:
-
-### a) Latitude and site occupation are negatively correlated: as latitude increases, so does occupation (bearing in mind that the increase in latitude from the southernmost site to the northernmost site is 2º latitude). I'm not entirely sure about why.
-#### a.1) Although it's non-significant, sycamore FS decreases as latitude increases, while birch and oak FS appear to increase (but not only is it non-significant, but also the correlation is quite weak).
-#### a.2) I also think that it's interesting to note that correlation between latitude and elevation is 0 (which, having seen elevation vs. altitude, makes sense); they provide completely different information (I think)
-### b) Elevation is negatively correlated with site occupation as well, but also with sycamore FS and overall FS.
-### c) Site occupation is greater when sycamore foliage score is greater. Not entirely sure what to infer from this.
-### d) Tree diversity is negatively correlated with birch FS. Although I'm not entirely sure how to interpret this, maybe I'd say that in sites with lower tree diversity, birch foliage happens to be greater (maybe there are more birches in number or, even if there are not that many birch trees, they're quite wide and provide quite a bit of foliage cover)
-### e) Out of all FS predictors, only sycamore FS is positively correlated with total FS: seems like sycamore trees have greater foliage overall than any of the other species selected for the correlation (this is also expected as it's the most frequent tree taxa along the transect, as well as sycamores along the transect tend to offer quite a bit of foliage cover)
-
 
 # Checking how correlated overall FS and all deciduous trees FS are:
 
@@ -1378,18 +1363,6 @@ corrplot2 <- ggstatsplot::ggcorrmat(
   type = "nonparametric", # parametric for Pearson, nonparametric for Spearman's correlation
   colors = c("darkred", "white", "steelblue") # change default colors
 )
-
-# Caterpillar data
-caterpillars <- caterpillars %>% 
-  rename(year = Year) %>%
-  rename(site = Site)
-
-cater_birdphen <- caterpillars %>%
-  inner_join(blutiphen, by =c("year", "site"))
-
-cor.test(cater_birdphen$Number.present.total, cater_birdphen$fed, method = "pearson")  # I'm honestly not sure this makes sense, but I would like to do something like this
-
-cor.test(cater_birdphen$Number.present.total, cater_birdphen$suc, method = "pearson")
 
 
 # Male age (finding correlations with female age)

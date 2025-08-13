@@ -1,0 +1,1694 @@
+---
+title: "Exploring potential environmental variables"
+author: "Julia"
+date: "2025-06-01"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+The aim of this markdown document is to briefly summarise breeding success data, but mainly to explore the potential environmental variables that I've selected for now.
+
+
+## Breeding traits
+
+The breeding traits selected as response are **first egg lay date**, **clutch size** and **fledgeling success**. Here I show both their distribution and their raw data (with noise).
+
+```{r, echo=F, warning=F, message=F}
+library(dplyr)
+library(tidyverse)
+library(ggplot2)
+library(gridExtra)
+blutidf <- read.csv("C:/Users/julia/OneDrive - University of Edinburgh/EEB_MSc_UEd/Dissertation/diss/data/blutidf.csv")
+blutidf_3yo <- read.csv("C:/Users/julia/OneDrive - University of Edinburgh/EEB_MSc_UEd/Dissertation/diss/data/blutidf_3yo.csv")
+sites <- read.csv("C:/Users/julia/OneDrive - University of Edinburgh/EEB_MSc_UEd/Dissertation/diss/data/site_detailsII.csv")
+```
+
+First, let's take a look at sample sizes per age (both age and age at last reproduction attempt):
+
+```{r, fig.width=12}
+birds_per_age <- blutidf %>% count(yo)
+
+birds_per_age_3yo <- blutidf_3yo %>% count(yo)
+
+plot1 <- ggplot(blutidf, aes(x=yo)) +
+  geom_freqpoly(colour="#248fc9", binwidth=1, linejoin = "round") +
+  geom_point(stat="bin", aes(y=after_stat(count)), binwidth=1, colour="black", size = 2) +  # I would like to add a label with the frequencies
+  geom_label(stat="count", label = birds_per_age$n, vjust=-0.5) + 
+  theme_bw() +
+  scale_x_continuous(breaks=seq(1,7,1), limits=c(1,7)) +
+  scale_y_continuous(limits=c(0,820)) +
+  labs(x = "Age", y = "Number of recorded breeding attempts", title = "Overall number of female recordings per age group") +
+  theme( axis.title = element_text(size = 13), 
+         axis.text = element_text(size = 11),
+         axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+         axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+```
+
+
+### 1. First egg lay date
+
+```{r, fig.width=12, fig.height=8}
+blutidf_3yo_fed <- blutidf_3yo %>% filter(!is.na(fed))
+
+birds_per_age_3yo_fed <- blutidf_3yo_fed %>% count(yo)
+
+birds_per_age_3yo_fed_w <- blutidf_3yo_fed %>% count(w)
+
+birds_per_age_3yo_fed  # here we can see the number of observations per age group
+
+birds_per_age_3yo_fed_w  # and here we can see the number of observations per age-at-last-reproduction group
+
+plot1 <- ggplot(blutidf_3yo_fed, aes(x=yo)) +
+  geom_freqpoly(colour="#248fc9", binwidth=1, linejoin = "round") +
+  geom_point(stat="bin", aes(y=after_stat(count)), binwidth=1, colour="black", size = 2) +  # I would like to add a label with the frequencies
+  geom_label(stat="count", label = birds_per_age_3yo_fed$n, vjust=-0.5) + 
+  theme_bw() +
+  scale_x_continuous(breaks=seq(1,3,1), limits=c(1,3)) +
+  scale_y_continuous(limits=c(0,700)) +
+  labs(x = "Age", y = "Number of recorded breeding attempts", title = "Overall number of female recordings per age (yo) group") +
+  theme( axis.title = element_text(size = 13), 
+         axis.text = element_text(size = 11),
+         axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+         axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+plot2 <- ggplot(blutidf_3yo_fed, aes(x=w)) +
+  geom_freqpoly(colour="#248fc9", binwidth=1, linejoin = "round") +
+  geom_point(stat="bin", aes(y=after_stat(count)), binwidth=1, colour="black", size = 2) +  # I would like to add a label with the frequencies
+  geom_label(stat="count", label = birds_per_age_3yo_fed_w$n, vjust=-0.5) + 
+  theme_bw() +
+  scale_x_continuous(breaks=seq(1,7,1), limits=c(1,7)) +
+  scale_y_continuous(limits=c(0,500)) +
+  labs(x = "Age at last reproduction (w)", y = "Number of recorded breeding attempts", title = "Overall number of female recordings per age-at-last-reproduction (w) group") +
+  theme( axis.title = element_text(size = 13), 
+         axis.text = element_text(size = 11),
+         axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+         axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+grid.arrange(plot1, plot2, ncol=2, nrow = 1)
+```
+```{r, echo=F}
+#unique_birds_fed <- blutidf_3yo_fed %>%
+  #count(ring)
+
+#ggplot(unique_birds_fed, aes(n)) +
+#  geom_freqpoly(colour="#248fc9", binwidth=1, linejoin = "round") +
+#  geom_point(stat="bin", aes(y=after_stat(count)), binwidth=1, colour="black", size = 2) +  # I would like #to add a label with the frequencies
+#   geom_label(stat="count", label = birds_per_age_3yo_fed$n, vjust=-0.5) + 
+#  theme_bw() +
+#  scale_x_continuous(breaks=seq(1,7,1), limits = c(1,7)) +
+#  labs(x = "Number of breeding attempts", y = "Number of females", title = "Number of breeding events #attempted by female blue tits") +
+#  theme( axis.title = element_text(size = 13), 
+#         axis.text = element_text(size = 11),
+#         axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+#         axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+```
+
+Next, let's take a look at the histogram for `fed`:
+
+```{r, fig.width=12}
+ggplot(blutidf_3yo, aes(fed)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
+  labs(x = "First egg lay date (1st Jan = 1)", y = "Frequency") +
+  theme_bw() +
+  scale_x_continuous(breaks=seq(90,200,5)) +
+  theme(axis.title = element_text(size = 14,), axis.text = element_text(size = 12, angle = 30))
+```
+
+
+At first glance, although it looks a bit shifted, first egg lay date appears to be more or less Normally distributed:
+
+```{r}
+qqnorm(blutidf_3yo$fed); qqline(blutidf_3yo$fed, col = 2)
+```
+
+The observations mostly align with the diagonal that crosses through the first and third quantiles of the theoretical Normal distribution, except for the tails of the data distribution.
+
+Once we've looked at the trait distribution overall, we can take a look at how this distribution changes when we plot observations both by age and by age at last reproductive attempt:
+
+```{r, fig.width=12, fig.height=8}
+ggplot(blutidf_3yo, aes(fed)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
+  labs(x = "First egg lay date (1st Jan = 1)", y = "Frequency", title = "First egg lay date per age (yo) group") +
+  theme_bw() +
+  facet_wrap(~ yo) +
+  scale_x_continuous(breaks=seq(90,200,5)) +
+  theme(axis.title = element_text(size = 14,), axis.text = element_text(size = 12, angle = 30))
+
+ggplot(blutidf_3yo, aes(fed)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
+  labs(x = "First egg lay date (1st Jan = 1)", y = "Frequency", title = "First egg lay date per age-at-last-reproduction (w) group") +
+  theme_bw() +
+  facet_wrap(~ w) +
+  scale_x_continuous(breaks=seq(90,200,5)) +
+  theme(axis.title = element_text(size = 14,), axis.text = element_text(size = 12, angle = 30))
+
+find_mode <- function(x) {
+  u <- unique(x)
+  tab <- tabulate(match(x, u))
+  u[tab == max(tab)]
+}  # using a function that will calculate the mode for each of the plotted distributions
+
+
+sd_fed <- sd(na.omit(blutidf_3yo$fed))  # estimating standard deviation
+se_1 <- sd_fed/sqrt(length(na.omit(blutidf_3yo$fed)))  # estimating SE of the mean omitting rows (cases) with NA values in variable fed and interpreting number of cases as sample size, not unique individuals
+se_2 <- sd_fed/sqrt(length(unique(na.omit(blutidf_3yo$ring)))) # estimating SE of the mean omitting rows (cases) with NA values in variable fed and interpreting number of unique individuals as sample size, not overall cases
+
+# I would like to highlight here that I'm not entirely sure which SE is the correct one, but since what I'm plotting is the breeding trait value associated with each observation and not with each unique bird (unique birds could have several reproductive values if they've been recorded more than once), and I'm plotting mean value of all observations and not of all unique birds, I would say that, for the purpose of plotting raw data overlapped by mean +- SE, the correct way to go would be the first formula (se_1), assuming that I'm not wrong about the formula of the SE of the mean. 
+
+
+se <- function(x) {
+  sd(x)/(sqrt(length(x)))
+}  # this rudimentary function should be able to calculate the SE based on the first formula I presented...
+
+se(na.omit(blutidf_3yo$fed))  # ...as shown here
+
+blutidf_3yo %>% group_by(yo) %>% na.omit(blutidf_3yo$fed) %>% summarise_at(vars(fed), list(mean=mean, sd=sd, SE=se, mode=find_mode, min=min, max=max))  # summarising the data to mean, standard deviation, mode, min. value and max. value 
+
+```
+
+The main thing that catches one's attention is the decrease in frequency as age increases. One can also get the impression that the mean increases as age increases, however the decrease between age groups is of barely 1-2 days on average (as we can see on the summary table above). As for the range of values, the distribution appears to be slightly narrower for observations at age 3 (y.o.) (the earlier recorded first egg lay date is 4 days later than for younger birds but the latest is at least 5 days earlier than the last first egg lay date observed in younger birds). 
+
+Now, as the warning in the histogram plot claims, there are 297 observations that have been removed:
+
+```{r}
+head(blutidf[which(is.na(blutidf$fed)),])
+```
+
+Quite a few of these belong to sites that are visited less often (most sites in the Northern part of the transect, starting with HWP and until DOR, as well as sites in the southern transect that after a certain year started to receive visits less often: BAD, DLW and DUN) and, therefore, estimation of first egg lay date based on the number of eggs present in the nest box once its inspected is less accurate. However, and potentially more relevant, most of these fed-lacking observations belong to the year 2020, year in which the sanitary emergency caused by the COVID-19 pandemic provided an obstacle to conduct fieldwork following the standard protocol. The effect of this event becomes even more clear when plotting raw data vs. year, where we can see the low number of "noisy" data points in year 2020:
+
+```{r, fig.width=12, fig.height=8}
+bluti_fed_summary <- blutidf_3yo_fed %>%
+  group_by(year) %>%
+  na.omit(bluti_fed_summary) %>%
+  summarise_at(vars(fed), list(mean=mean, SE=se)) %>% 
+  as.data.frame()  # summarising first egg lay date observations by calculating its mean and standard deviation
+
+ggplot() +
+  geom_jitter(data=blutidf_3yo, aes(x=year, y=fed), size=2, alpha=0.25, colour = "#248fc9") +
+  geom_errorbar(data=bluti_fed_summary, aes(x=year, y=mean, ymin=mean-SE, ymax=mean+SE)) +
+  geom_point(data=bluti_fed_summary, aes(x=year, y=mean), colour = "black", size = 2, alpha = 0.8) +
+  labs(x = "Year", y = "First egg lay date (1st Jan = 1)", title = "First egg lay date raw data and mean+sd") +
+  theme_bw() +
+  scale_x_continuous(breaks=seq(2014,2024,1)) +
+  scale_y_continuous(breaks=seq(90,200,5)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+```
+
+>I would like to point out that I am a bit skeptical about the calculated Standard Errors as they look a bit too narrow for me, so I apologise in advance as I might have made a mistake calculating them. However, I will keep using the formula throughout this document simply to maintain consistency throughout.
+
+Something that I also find quite interesting is how in some years the points appear to be more clustered (2018) while in others years they appear to be more scattered (2020). 
+
+```{r, fig.width=12, fig.height=8}
+ggplot(blutidf_3yo, aes(fed)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
+  labs(x = "First egg lay date (1st Jan = 1)", y = "Frequency") +
+  theme_bw() +
+  facet_wrap(~ year) +
+  scale_x_continuous(breaks=seq(90,200,5)) +
+  theme(axis.title = element_text(size = 14,), axis.text = element_text(size = 12, angle = 30))
+```
+
+This plot shows that, indeed, `fed` distribution in 2021 is very wide and low, while it's much narrower in 2018 (with the exception of an outlier). Apart from this, another thing that catches my eye is how flat distributions look like overall (with exceptions f.e. 2019). I am not sure whether this is relevant or not as we won't study variation across years (but rather control for it), and whether this is a Normal-enough behaviour, but I do think that different years show different traits and looking at population composition per year might also be interesting:
+
+```{r}
+blutidf_3yo %>% 
+  count(year,yo) %>%
+  pivot_wider(names_from=year,values_from=c(n))
+```
+
+The number of observations of 3 years-old individuals per year is quite low overall, and it's almost always less than 20% of the population (2022 is the sole exception); birds aged 3 years old usually represent between 10 and 15% of the total of the (female) population. 
+
+
+Now, let's see how this breeding trait changes across sites:
+
+```{r, fig.width=12, fig.height=8}
+
+bluti_fed_summary <- blutidf_3yo %>%
+  group_by(site) %>%
+  na.omit(bluti_fed_summary) %>%
+  summarise_at(vars(fed), list(mean=mean, SE=se)) %>% 
+  as.data.frame()  # summarising first egg lay date observations by calculating its mean and standard deviation
+
+level_order <- c("EDI", "RSY", "FOF", "BAD", "LVN", "DOW", "GLF", "SER", "MCH", "PTH", "STY", "BIR", "DUN", "BLG", "PIT", "KCK", "KCZ", "BLA", "CAL", "DNM", "DNC", "DNS", "DLW", "CRU", "NEW", "HWP", "INS", "FSH", "RTH", "AVI", "AVN", "CAR", "SLS", "TOM", "DAV", "ART", "MUN", "FOU", "ALN", "DEL", "TAI", "SPD", "OSP", "DOR")
+
+ggplot(blutidf_3yo, aes(x=site, y=fed)) +
+  geom_jitter(size=1.5, alpha=0.25, colour = "#248fc9") +
+  geom_errorbar(data=bluti_fed_summary, aes(x=site, y=mean, ymin=mean-SE, ymax=mean+SE)) +
+  geom_point(data=bluti_fed_summary, aes(x=site, y=mean), colour = "black", size = 2) +
+  labs(x = "Years", y = "First egg lay date (1st Jan = 1)") +
+  theme_bw() +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle = 30), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  scale_x_discrete(limits = level_order) 
+```
+
+At first glance, there appears to be sites on which, on average, first egg lay date is earlier and where it appears to be later (also on average). On average, first egg lay date lies between day 109 and 131 across sites, with some sites having first egg lay date as early as day ~100 and as late as day ~146. To me, this suggest that there is are important differences between sites (as we initially expected).
+
+
+
+### 2. Clutch size
+
+```{r, fig.width=12, fig.height=8}
+blutidf_3yo_cs <- blutidf_3yo %>% filter(!is.na(cs))
+
+birds_per_age_3yo_cs <- blutidf_3yo_cs %>% count(yo)
+
+birds_per_age_3yo_cs_w <- blutidf_3yo_cs %>% count(w)
+
+birds_per_age_3yo_cs  # here we can see the number of observations per age group
+
+birds_per_age_3yo_cs_w  # and here we can see the number of observations per age-at-last-reproduction group
+
+plot1 <- ggplot(blutidf_3yo_cs, aes(x=yo)) +
+  geom_freqpoly(colour="#248fc9", binwidth=1, linejoin = "round") +
+  geom_point(stat="bin", aes(y=after_stat(count)), binwidth=1, colour="black", size = 2) +  # I would like to add a label with the frequencies
+  geom_label(stat="count", label = birds_per_age_3yo_cs$n, vjust=-0.5) + 
+  theme_bw() +
+  scale_x_continuous(breaks=seq(1,3,1), limits=c(1,3)) +
+  scale_y_continuous(limits=c(0,800)) +
+  labs(x = "Age", y = "Number of recorded breeding attempts", title = "Overall number of female recordings per age (yo) group") +
+  theme( axis.title = element_text(size = 13), 
+         axis.text = element_text(size = 11),
+         axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+         axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+plot2 <- ggplot(blutidf_3yo_cs, aes(x=w)) +
+  geom_freqpoly(colour="#248fc9", binwidth=1, linejoin = "round") +
+  geom_point(stat="bin", aes(y=after_stat(count)), binwidth=1, colour="black", size = 2) +  # I would like to add a label with the frequencies
+  geom_label(stat="count", label = birds_per_age_3yo_cs_w$n, vjust=-0.5) + 
+  theme_bw() +
+  scale_x_continuous(breaks=seq(1,7,1), limits=c(1,7)) +
+  scale_y_continuous(limits=c(0,800)) +
+  labs(x = "Age at last reproduction (w)", y = "Number of recorded breeding attempts", title = "Overall number of female recordings per age-at-last-reproduction (w) group") +
+  theme( axis.title = element_text(size = 13), 
+         axis.text = element_text(size = 11),
+         axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+         axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+grid.arrange(plot1, plot2, ncol=2, nrow = 1)
+```
+
+As with `fed`, let's take a look at `cs` histogram:
+
+```{r, fig.width=12}
+ggplot(blutidf_3yo, aes(cs)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
+  labs(x = "First egg lay date (1st Jan = 1)", y = "Frequency") +
+  theme_bw() +
+  scale_x_continuous(breaks=seq(0,15,1)) +
+  theme(axis.title = element_text(size = 14,), axis.text = element_text(size = 12, angle = 30))
+```
+
+The sampling distribution of `cs` appears to be more normally distributed than the sampling distribution of `fed`, which should make things easier.
+
+```{r}
+qqnorm(blutidf_3yo$cs); qqline(blutidf_3yo$cs, col = 2)
+```
+However, the Q-Q plot looks odd. As with `fed`, the plot highlight that the data is count data, for which (if I'm not mistaken) the best distribution to model it would be a Poisson distribution, although Sanjana mentioned that this might not be necessary since it's been shown that the model outputs usually don't change as much. Apart from that, it also looks like the distribution is light-tailed according to the shape of the Q-Qplot.
+
+> Apologies in advance if the interpretation of the Q-Qplots is wrong; I haven't had many chances to study and interpret them so I'm most likely completely off here.
+
+Again, we can now take a look at how this distribution changes when we plot observations both by age and by age at last reproductive attempt:
+
+```{r, fig.width=12, fig.height=8}
+ggplot(blutidf_3yo, aes(cs)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
+  labs(x = "First egg lay date (1st Jan = 1)", y = "Frequency", title = "Clutch size per age (yo) group") +
+  theme_bw() +
+  facet_wrap(~ yo) +
+  scale_x_continuous(breaks=seq(0,16,1)) +
+  theme(axis.title = element_text(size = 14,), axis.text = element_text(size = 12, angle = 30))
+```
+```{r, fig.width=12, fig.height=12}
+
+ggplot(blutidf_3yo, aes(cs)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
+  labs(x = "First egg lay date (1st Jan = 1)", y = "Frequency", title = "Clutch size per age-at-last-reproduction (w) group") +
+  theme_bw() +
+  facet_wrap(~ w) +
+  scale_x_continuous(breaks=seq(0,16,1)) +
+  theme(axis.title = element_text(size = 14,), axis.text = element_text(size = 12, angle = 30))
+```
+```{r}
+blutidf_3yo %>% group_by(yo) %>% na.omit(blutidf_3yo$cs) %>% summarise_at(vars(cs), list(mean=mean, sd=sd, SE=se, mode=find_mode, min=min, max=max))  # summarising the data to mean, standard deviation, mode, min. value and max. value 
+```
+
+When we look at the mean clutch size per age group, we can see that, on average, it increases as age increases: it increases by 0.16 eggs (around 2% increase) from 1 y.o. to 2 y.o and by 0.11 eggs (around 1% increase) from 2 y.o. to 3 y.o. In all cases, the most frequent clutch size is 8 eggs, although the minimum increases as age increases and the maximum seems to decrease at age 3 (from 14 eggs at both 1 y.o. and 2 y.o. to 13 at 3 y.o.).
+
+Let's summarise by age at last reproductive attempt now:
+
+```{r}
+blutidf_3yo %>% group_by(w) %>% na.omit(blutidf_3yo$cs) %>% summarise_at(vars(cs), list(mean=mean, sd=sd, SE=se, mode=find_mode, min=min, max=max))  # summarising the data to mean, standard deviation, mode, min. value and max. value 
+```
+
+> The one bird that is believed to be 7 years old is not included in the summary table, and I'm not sure why.
+
+On average, clutch size also increases up until 6 y.o. at last reproductive attempt (although SE is greater). Mode is greatest for birds whose age at last reproductive attempt is estimated to be 2 (9 eggs), and the maximum clutch size is found in birds that are estimated to reproduce only once or twice. Without further insight, my first though is that birds that invest more energy and resources from their first reproductive attempt wear out sooner and die sooner, whereas birds that don't invest as much in each reproductive attempt that they undergo manage to save enough energy to live another year and, therefore, reproduce once more. It's interesting though how clutch size still increases on average (until 6 y.o. at last reproductive attempt).
+
+```{r}
+head(blutidf[which(is.na(blutidf$cs)),])
+```
+
+All missing values belong to years 2020 (highlighting once again the effect that COVID had on data collection) and 2021 and sites belonging to the Northern part of the transect.
+
+```{r, fig.width=12, fig.height=8}
+bluti_cs_summary <- blutidf_3yo_cs %>%
+  group_by(year) %>%
+  summarise_at(vars(cs), list(mean=mean, SE=se)) %>% 
+  as.data.frame()  # summarising clutch size observations by calculating its mean and standard error
+
+ggplot() +
+  geom_jitter(data=blutidf_3yo, aes(x=year, y=cs), size=2, alpha=0.25, colour = "#248fc9") +
+  geom_errorbar(data=bluti_cs_summary, aes(x=year, y=mean, ymin=mean-SE, ymax=mean+SE)) +
+  geom_point(data=bluti_cs_summary, aes(x=year, y=mean), colour = "black", size = 2, alpha = 0.8) +
+  labs(x = "Year", y = "Clutch size", title = "Clutch size raw data and mean+sd") +
+  theme_bw() +
+  scale_x_continuous(breaks=seq(2014,2024,1)) +
+  scale_y_continuous(breaks=seq(0,15,1)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+```
+
+Unlike with `fed`, average values remain quite close among years, with a few exceptions (e.g. 2019 and 2020). I guess it's interesting to take this into account when fitting random effects.
+
+```{r, fig.width=12, fig.height=8}
+bluti_cs_summary <- blutidf_3yo_cs %>%
+  group_by(site) %>%
+  summarise_at(vars(cs), list(mean=mean, SE=se)) %>% 
+  as.data.frame()  # summarising first egg lay date observations by calculating its mean and standard deviation
+
+ggplot(blutidf_3yo, aes(x=site, y=cs)) +
+  geom_jitter(size=1.5, alpha=0.25, colour = "#248fc9") +
+  geom_errorbar(data=bluti_cs_summary, aes(x=site, y=mean, ymin=mean-SE, ymax=mean+SE)) +
+  geom_point(data=bluti_cs_summary, aes(x=site, y=mean), colour = "black", size = 2) +
+  labs(x = "Sites", y = "Clutch size") +
+  theme_bw() +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle = 30), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  scale_x_discrete(limits = level_order) +
+  scale_y_continuous(breaks=seq(0,15,1))
+```
+
+There seems to be a lot of variation in clutch size across sites, although on average clutch size remains between ~7 and ~10 eggs:
+
+```{r}
+cs_by_site_summary <- blutidf_3yo %>% group_by(site) %>% na.omit(blutidf_3yo$cs) %>% summarise_at(vars(cs), list(mean=mean, sd=sd, SE=se, mode=find_mode, min=min, max=max))
+
+cs_by_site_summary <- cs_by_site_summary %>% arrange(factor(site, levels = level_order), .before=mean)
+
+cs_by_site_summary
+```
+
+As with `fed` this suggests that, considering that sites differ in habitat, `cs` varies depending on the habitat and its quality (although it should also be taken into consideration that, according to Ally, birds stay more or less "faithful" to breeding sites, usually returning to the same site or to a nearby site year after year; as a matter of fact, the oldest recorded bird in the transect has always bred in nest box 1 in EDI site).
+
+
+### 3. Fledgeling success
+
+```{r, fig.width=12, fig.height=8}
+blutidf_3yo_suc <- blutidf_3yo %>% filter(!is.na(suc))
+
+birds_per_age_3yo_suc <- blutidf_3yo_suc %>% count(yo)
+
+birds_per_age_3yo_suc_w <- blutidf_3yo_suc %>% count(w)
+
+birds_per_age_3yo_suc  # here we can see the number of observations per age group
+
+birds_per_age_3yo_suc_w  # and here we can see the number of observations per age-at-last-reproduction group
+
+plot1 <- ggplot(blutidf_3yo_suc, aes(x=yo)) +
+  geom_freqpoly(colour="#248fc9", binwidth=1, linejoin = "round") +
+  geom_point(stat="bin", aes(y=after_stat(count)), binwidth=1, colour="black", size = 2) +  # I would like to add a label with the frequencies
+  geom_label(stat="count", label = birds_per_age_3yo_suc$n, vjust=-0.5) + 
+  theme_bw() +
+  scale_x_continuous(breaks=seq(1,3,1), limits=c(1,3)) +
+  scale_y_continuous(limits=c(0,800)) +
+  labs(x = "Age", y = "Number of recorded breeding attempts", title = "Overall number of female recordings per age (yo) group") +
+  theme( axis.title = element_text(size = 13), 
+         axis.text = element_text(size = 11),
+         axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+         axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+plot2 <- ggplot(blutidf_3yo_suc, aes(x=w)) +
+  geom_freqpoly(colour="#248fc9", binwidth=1, linejoin = "round") +
+  geom_point(stat="bin", aes(y=after_stat(count)), binwidth=1, colour="black", size = 2) +  # I would like to add a label with the frequencies
+  geom_label(stat="count", label = birds_per_age_3yo_suc_w$n, vjust=-0.5) + 
+  theme_bw() +
+  scale_x_continuous(breaks=seq(1,7,1), limits=c(1,7)) +
+  scale_y_continuous(limits=c(0,800)) +
+  labs(x = "Age at last reproduction (w)", y = "Number of recorded breeding attempts", title = "Overall number of female recordings per age-at-last-reproduction (w) group") +
+  theme( axis.title = element_text(size = 13), 
+         axis.text = element_text(size = 11),
+         axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+         axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+
+grid.arrange(plot1, plot2, ncol=2, nrow = 1)
+```
+
+Next, let's take a look at the histogram for `suc`:
+
+```{r, fig.width=12}
+ggplot(blutidf_3yo, aes(suc)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
+  labs(x = "Number of chicks successfully fledged", y = "Frequency") +
+  theme_bw() +
+  scale_x_continuous(breaks=seq(0,16,1)) +
+  theme(axis.title = element_text(size = 14,), axis.text = element_text(size = 12, angle = 30))
+```
+
+The `suc` histogram clearly shows a spike in 0s. Sanjana suggested using a Hurdle model to deal with this.
+
+For `suc`, I was also interested in seeing the proportion of chicks that fledged (comparing to the initial clutch size). This proportion will take the complete clutch into account, rather than the number of hatched eggs. However, it would be potentially more accurate to use the number of hatched eggs as base (maybe substracting the number of unhatched eggs found in V1 to the clutch size), but for now I'll use clutch size.
+
+```{r, fig.width=12, fig.height=8}
+ggplot(blutidf_3yo, aes(suc_prop)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=0.1) +
+  labs(x = "Proportion of chicks successfully fledged", y = "Frequency") +
+  theme_bw() +
+  scale_x_continuous(breaks=seq(0,1,0.1)) +
+  theme(axis.title = element_text(size = 14,), axis.text = element_text(size = 12, angle = 30))
+```
+
+This is obviously not a Normal distribution; maybe exponential with a spike in 0? (If that's possible)
+
+```{r}
+qqnorm(blutidf_3yo$suc_prop); qqline(blutidf_3yo$suc_prop, col = 2)
+```
+
+Let's look at how this distribution changes when we plot observations both by age and by age at last reproductive attempt:
+
+```{r, fig.width=12, fig.height=8}
+ggplot(blutidf_3yo, aes(suc)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
+  labs(x = "First egg lay date (1st Jan = 1)", y = "Frequency", title = "Clutch size per age (yo) group") +
+  theme_bw() +
+  facet_wrap(~ yo) +
+  scale_x_continuous(breaks=seq(0,16,1)) +
+  theme(axis.title = element_text(size = 14,), axis.text = element_text(size = 12, angle = 30))
+  # using a function that will calculate the mode for each of the plotted distributions
+```
+
+Something quite interesting and that pops up straight aways is how the spike in 0 is smaller as age increases (although overall frequency decreases as age increases, as in `fed` and in `cs`).
+
+```{r, fig.width=12, fig.height=12}
+ggplot(blutidf_3yo, aes(suc)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=1) +
+  labs(x = "First egg lay date (1st Jan = 1)", y = "Frequency", title = "Clutch size per age-at-last-reproduction (w) group") +
+  theme_bw() +
+  facet_wrap(~ w) +
+  scale_x_continuous(breaks=seq(0,16,1)) +
+  theme(axis.title = element_text(size = 14,), axis.text = element_text(size = 12, angle = 30))
+  # using a function that will calculate the mode for each of the plotted distributions
+```
+
+The value 0 seems to be always a bit too frequent (except for the bird that is 7 years old, where the sole value is 8 as the two previous recordings are NAs).
+
+Now, what if we look at the **proportion** of chicks successfully fledge per age and age at last reproduction group?:
+
+```{r, fig.width=12, fig.height=8}
+ggplot(blutidf_3yo, aes(suc_prop)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=0.1) +
+  labs(x = "First egg lay date (1st Jan = 1)", y = "Frequency", title = "Clutch size per age (yo) group") +
+  theme_bw() +
+  facet_wrap(~ yo) +
+  scale_x_continuous(breaks=seq(0,1,0.1)) +
+  theme(axis.title = element_text(size = 14,), axis.text = element_text(size = 12, angle = 30))
+  # using a function that will calculate the mode for each of the plotted distributions
+```
+```{r, fig.width=12, fig.height=12}
+ggplot(blutidf_3yo, aes(suc_prop)) +
+  geom_histogram(colour = "black", fill = "#248fc9", binwidth=0.1) +
+  labs(x = "First egg lay date (1st Jan = 1)", y = "Frequency", title = "Clutch size per age-at-last-reproduction (w) group") +
+  theme_bw() +
+  facet_wrap(~ w) +
+  scale_x_continuous(breaks=seq(0,1,0.1)) +
+  theme(axis.title = element_text(size = 14,), axis.text = element_text(size = 12, angle = 30))
+  # using a function that will calculate the mode for each of the plotted distributions
+```
+
+```{r}
+blutidf_3yo %>% group_by(yo) %>% na.omit(blutidf_3yo$suc) %>% summarise_at(vars(suc), list(mean=mean, sd=sd, SE=se, mode=find_mode, min=min, max=max))  # summarising the data to mean, standard deviation, mode, min. value and max. value 
+```
+
+When we look at the mean fledgeling success per age group, we can see that it increases ~10% from age 1 to age 2 but it then decreases from age 2 to age 3 (it decreases ~0.04%), although (once again) the SE is greater. The mode is also greater at ages 2 and 3 in comparison to age 1, but the maximum number of successfully fledged chicks decreases (which is somewhat expected given that we previously saw that the maximum clutch size is at ages 1 and 2).
+
+We could look at the summary for `suc_prop` now:
+
+```{r}
+blutidf_3yo %>% group_by(yo) %>% na.omit(blutidf_3yo$suc_prop) %>% summarise_at(vars(suc_prop), list(mean=mean, sd=sd, SE=se, mode=find_mode, min=min, max=max))
+```
+
+Here, the proportion of chicks successfully fledged increases as age increases (~4% from 1 y.o. to 2 y.o. and ~0.4% from 2 y.o. to 3 y.o.).
+
+Let's summarise by age at last reproductive attempt now:
+
+```{r}
+blutidf_3yo %>% group_by(w) %>% na.omit(blutidf_3yo$cs) %>% summarise_at(vars(cs), list(mean=mean, sd=sd, SE=se, mode=find_mode, min=min, max=max))  
+```
+
+Here it seems that fledgeling success increases up until w=3 and then it decreases, and the maximum number of successfully fledged chicks follows a similar trend.
+
+```{r}
+blutidf_3yo %>% group_by(w) %>% na.omit(blutidf_3yo$suc_prop) %>% summarise_at(vars(suc_prop), list(mean=mean, sd=sd, SE=se, mode=find_mode, min=min, max=max))  
+```
+
+That trend also applies when we look at proportion of successfully fledged chicks: average proportion is greater at w=3.
+
+```{r}
+head(blutidf[which(is.na(blutidf$suc)),])
+```
+
+In this case, most NAs values belong to cases involved in the clutch swap experiments (that took place between 2017 and 2019). It should also include all cases where suc = -999. These are cases where nest boxes were predated, which, for now, I have decided to consider as NAs rather than as 0s as it does not necessarily reflect neither between- nor within-individual processes influencing breeding trait trends and, therefore, could obscure the results.
+
+```{r, fig.width=12}
+bluti_suc_summary <- blutidf_3yo_suc %>%
+  group_by(year) %>%
+  summarise_at(vars(suc), list(mean=mean, SE=se)) %>% 
+  as.data.frame()  # summarising first egg lay date observations by calculating its mean and standard deviation
+
+ggplot() +
+  geom_jitter(data=blutidf_3yo, aes(x=year, y=suc), size=2, alpha=0.25, colour = "#248fc9") +
+  geom_errorbar(data=bluti_suc_summary, aes(x=year, y=mean, ymin=mean-SE, ymax=mean+SE)) +
+  geom_point(data=bluti_suc_summary, aes(x=year, y=mean), colour = "black", size = 2, alpha = 0.8) +
+  labs(x = "Year", y = "Fledgeling success", title = "Fledgeling success raw data and mean+sd") +
+  theme_bw() +
+  scale_x_continuous(breaks=seq(2014,2024,1)) +
+  scale_y_continuous(breaks=seq(0,15,1)) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+```
+
+There's some variation between years, and what catches my eye the most is the extremely low fledgeling success in year 2024. However, this is expected as we know that last year was a particularly bad year. According to this, both 2015 and 2020 might have also been bad years, while it seems that 2014 has been the best year so far.
+
+```{r, fig.width=12, fig.height=8}
+bluti_suc_summary <- blutidf_3yo_suc %>%
+  group_by(site) %>%
+  summarise_at(vars(suc), list(mean=mean, SE=se)) %>% 
+  as.data.frame()  # summarising first egg lay date observations by calculating its mean and standard deviation
+
+ggplot(blutidf_3yo, aes(x=site, y=suc)) +
+  geom_jitter(size=1.5, alpha=0.25, colour = "#248fc9") +
+  geom_errorbar(data=bluti_suc_summary, aes(x=site, y=mean, ymin=mean-SE, ymax=mean+SE)) +
+  geom_point(data=bluti_suc_summary, aes(x=site, y=mean), colour = "black", size = 2) +
+  labs(x = "Sites", y = "Number of chicks successfully fledged") +
+  theme_bw() +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle = 30), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  scale_x_discrete(limits = level_order) +
+  scale_y_continuous(breaks=seq(0,15,1))
+```
+
+On average, there appears to be some variation, with sites in which fledgeling success is quite low on average (3-4 chicks) and sites in which fledgeling success is okay-ish (with not one site reaching 8 successfully fledged chicks on average):
+
+```{r}
+suc_by_site_summary <- blutidf_3yo %>% group_by(site) %>% na.omit(blutidf_3yo$suc) %>% summarise_at(vars(suc), list(mean=mean, sd=sd, SE=se, mode=find_mode, min=min, max=max))
+
+suc_by_site_summary <- suc_by_site_summary %>% arrange(factor(site, levels = level_order), .before=mean)
+
+suc_by_site_summary
+```
+
+Again, what about proportion of successfully fledged chicks?:
+
+```{r, fig.width=12, fig.height=8}
+bluti_suc_prop_summary <- blutidf_3yo %>%
+  group_by(site) %>%
+  na.omit(bluti_suc_summary) %>%
+  summarise_at(vars(suc_prop), list(mean=mean, SE=se)) %>% 
+  as.data.frame()  # summarising first egg lay date observations by calculating its mean and standard deviation
+
+ggplot(blutidf_3yo, aes(x=site, y=suc_prop)) +
+  geom_jitter(size=1.5, alpha=0.25, colour = "#248fc9") +
+  geom_errorbar(data=bluti_suc_prop_summary, aes(x=site, y=mean, ymin=mean-SE, ymax=mean+SE)) +
+  geom_point(data=bluti_suc_prop_summary, aes(x=site, y=mean), colour = "black", size = 2) +
+  labs(x = "Sites", y = "Proportion of chicks successfully fledged") +
+  theme_bw() +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle = 30), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  scale_x_discrete(limits = level_order) +
+  scale_y_continuous(breaks=seq(0,1,0.1))
+```
+
+There are some sites that apear to be quite low in comparison to others, namely RSY, DOW, DUN, DNS, DAV and maybe OSP and DOR:
+
+```{r}
+suc_prop_by_site_summary <- blutidf_3yo %>% group_by(site) %>% na.omit(blutidf_3yo$suc_prop) %>% summarise_at(vars(suc_prop), list(mean=mean, sd=sd, SE=se, mode=find_mode, min=min, max=max))
+
+suc_prop_by_site_summary <- suc_prop_by_site_summary %>% arrange(factor(site, levels = level_order), .before=mean)
+
+suc_prop_by_site_summary
+```
+
+
+## Environmental predictors
+
+### 1. Nest occupancy
+
+I've used the file site details as a reference to understand when data collection started for each site and when (and if) new boxes were added. However, COVID year was unusual in terms of data collection and fielwork protocol (e.g. visit frequency to sites), and the Northern part of the transect has not always been extensively visited, and therefore nest occupancy for some sites and/or years might be underestimated (if there is a 0 instead of NA, for example). Therefore, I would be cautious when looking at the estimates of nest occupancy.
+
+As another warning, I would like to apologise if my code is very inefficient and tedious as I usually don't see the faster route straight away (if at all).
+
+```{r}
+rownames(sites) <- sites$site  # naming each row after the site it represents
+
+sites$extra <- sites$dateofextraboxes  # creating a new column that will store the year in which new nest boxes were added
+
+sites$extra <- c(rep(2017,3), NA, 2017, NA, 2017, 2017, NA, rep(2017, 5), NA, rep(2017, 6), NA, NA, 2017, 2017, NA, 2017, 2017, NA, 2017, 2017, NA, rep(2017, 8), NA, 2017, NA, NA)  
+
+sites["BAD", c("X2015", "X2016")] <- 1
+sites["MCH", "X2015"] <- 1
+sites["PTH", "X2016"] <- 1
+sites["BIR", "X2015"] <- 1
+sites["DUN", "X2016"] <- 1
+sites["DLW", "X2020"] <- 1
+sites["CRU", "X2020"] <- 1
+sites[25-44, "X2020"] <- 1
+sites[38-44, "X2021"] <- 1
+sites["TAI", "X2015"] <- 1
+
+# In the previous lines I'm converting NAs into 1s as there are recordings of occupied nest boxes in those sites for those years, and therefore they were visited.
+
+sites$X2022 <- 1
+sites$X2023 <- 1
+sites$X2024 <- 1
+
+# Here I'm creating new columns for the years 2022, 2023 and 2024 as they were not included in the site_details.csv file.
+
+sites <- sites %>%  relocate(X2022:X2024, .before = extras)  # re-arranging the columns
+
+av_occupancy <- data.frame(site = sites$site, occupancy = rep(NA, nrow(sites))) # creating a new data frame that will store the average occupancy across years per site
+```
+
+Now, I wanted to estimate nest occupancy for those years were the site was visited and taking into account that some sites experimented an increase in the number of nest boxes at some point during the project. That is what the following bit of code does, in this case for the site EDI. However, the same code has been applied for all 44 sites in the project.
+
+```{r}
+# EDI site
+
+EDI_nb <- data.frame(year = c(2014:2024), site = rep("EDI", 11), all_nb = seq(1,11,1), occ_nb = rep(0, 11))  # creating a dataframe that will store total number of nest boxes and occupied nest boxes per year (repeated for all sites)
+
+for (i in 1:nrow(EDI_nb)) {
+  if (EDI_nb[i, "year"] < sites["EDI", "extra"]) {
+    EDI_nb[i,"all_nb"] <- sites["EDI","Original.Boxes"]
+  } else if (EDI_nb[i, "year"] >= sites["EDI", "extra"]) {
+    EDI_nb[i,"all_nb"] <- sites["EDI","Current.Boxes"]
+  }
+}  # the aim of this loop is to correctly assign the number of nest boxes present in the site for each year taking into account that the number of nest boxes was increased for most sites, but not all.
+
+row <- 0
+for (i in 10:17) {
+  row <- row + 1
+  if (is.na(sites["EDI",i])) {
+    EDI_nb[row, "all_nb"] <- NA
+  }
+}  # the aim of this loop is to assign NA to nest occupancy for years in which either nest boxes were not yet installed or they were not checked.
+
+blutiEDI <- blutidf[which(blutidf$site == "EDI"),] %>% count(year)  # selecting all recordings in my dataset that cover the site of interest (in this case, EDI) for the years of interest (between 2014 and 2021). Assuming that there is one recording per nest box, per site, per year, by counting the numbers of recordings per site and per year I can estimate the number of nest boxes occupied by blue tits.
+
+for (i in 1:nrow(EDI_nb)) {
+  if (EDI_nb[i,"year"] %in% blutiEDI$year) {
+    EDI_nb[i,"occ_nb"] <- blutiEDI[which(blutiEDI$year == EDI_nb[i,"year"]),"n"]
+  } else {
+    EDI_nb[i,"occ_nb"] <- 0
+  }
+}  # adding the number of recorded nest boxes (per year) to the data frame defined previously
+
+EDI_nb$occupancy <- EDI_nb$occ_nb/EDI_nb$all_nb  # calculating occupancy as the proportion of occupied nest boxes out of the total number of nest boxes present
+
+av_occupancy[which(av_occupancy$site == "EDI"),"occupancy"] <- mean(na.omit(EDI_nb$occupancy))  # calculating the average occupancy rate and storing it in a separate data frame
+```
+
+After doing this for all sites, the result is the following file:
+
+```{r}
+site_occupancy <- read.csv("C:/Users/julia/OneDrive - University of Edinburgh/EEB_MSc_UEd/Dissertation/diss/data/site_occupancy.csv")  
+
+site_occupancy  # this file stores the average occupancy per site across years
+```
+
+Then, I could add these occupancy rates to both of my databases:
+
+```{r, fig.width=12}
+environment <- data.frame(sites = sites$site, longitude = sites$Mean.Long, latitude = sites$Mean.Lat, elevation = sites$Mean.Elev)  # creating a new data frame that will store all potential environment variables
+
+environment$site_occ <- site_occupancy$occupancy[match(environment$site, site_occupancy$site)]
+
+# Then, I could also add it to both my data bases
+
+blutidf$site_occ <- site_occupancy$occupancy[match(blutidf$site, site_occupancy$site)] 
+
+blutidf_3yo$site_occ <- site_occupancy$occupancy[match(blutidf_3yo$site, site_occupancy$site)] 
+
+as_tibble(blutidf)
+
+as_tibble(blutidf_3yo)
+
+ggplot(environment, aes(x=sites, y=site_occ)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Sites", y = "Average occupancy") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, margin = unit(c(3, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  scale_x_discrete(limits = level_order) 
+```
+
+Average nest box occupation does not seem to follow a latitudinal pattern, but it is clear that some sites have very low occupancy (DNM, DNC, DNS, DLW, SLS...) while others have a high occupancy (EDI, FOF, GLF...). However, it might not be correlated in any way to breeding success.
+
+
+
+### 2. Elevation
+
+According to Shutt et al. (2018), "Total foliage, oak, sycamore and tree diversity all appear to decrease at higher elevations, with birch and willow displaying the opposite trend". It could potentially be used as an environmental predictor, but the biggest drawback that I see for it is that as birch and willow foliage/availability increase with elevation, and their presence might compensate (buffer) oak and sycamore decreased availability (and thus, their resources') absence. Still, I tried to explore it a little bit.
+
+```{r}
+
+blutidf$elevation <- environment$elevation[match(blutidf$site, environment$sites)]
+
+blutidf_3yo$elevation <- environment$elevation[match(blutidf_3yo$site, environment$sites)]   # adding elevation to both databases
+
+as_tibble(blutidf)
+
+as_tibble(blutidf_3yo)
+
+ggplot(environment, aes(x=sites, y=elevation)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Sites", y = "Average site elevation") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, margin = unit(c(3, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  scale_x_discrete(limits = level_order) 
+```
+
+Although very roughly, there may be some degree of correlation between average nest occupancy and average site elevation:
+
+```{r}
+ggplot(environment, aes(x=elevation, y=site_occ)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Elevation", y = "Average occupancy") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(margin = unit(c(1, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) 
+```
+
+It appears that as elevation increases, nest occupancy decreases. Although it might not be directly relevant to environment characterisation, it will most likely be something interesting to take into account as low nest occupancy might imply less competition over available resources, and therefore this could compensate for a bad quality site (e.g. if the site provides poor resources, but these resources have to be split only among a few birds, they could potentially perform better than birds that live in a very good quality site but that have to compete with more birds for access to the available resources, especially if they are not good competitors).
+
+### 3. Tree composition
+
+As we've discussed before, there's different ways in which tree composition could be modelled. Here I explore different option from less to most complex (and, potentially, comprehensive).
+
+```{r}
+habitat <- read.csv("C:/Users/julia/OneDrive - University of Edinburgh/EEB_MSc_UEd/Dissertation/diss/data/Habitats.csv")  # loading the file that stores the count of trees by nestbox and site
+
+as_tibble(habitat)
+```
+
+This file stores tree composition within 15 m ratius for all nest boxes and all sites, classifying according to the following categories:
+* Trees:
+    + Small: trunk girth at brest height (gbh) is between 40 and 99 mm.
+    + Medium: 100-249 mm trunk gbh.
+    + Large: >250 mm trunk gbh.
+* Stands: category for vegetation (e.g. shrubs) that would not fit within the tree category but that still provides exploitable resources.
+    + Stands 6-20: shrub stands from which 6-20 branches split within 20 cm of their base. They visually estimated each of these stands is equivalent to 0.5 trees.
+    + Stands 21+: >20 branches split within 20 cm of the base of the stands. They visually estimated each of these stands is equivalent to 1 small tree.
+    
+Using these recordings, I estimated the following predictors:
+
+#### a. Absolute number of oaks per site
+
+Since oaks seem to offer the most resources for blue tits, sites where the number of oaks is higher could be interpreted as better sites. However, this wouldn't allow us to explore how other tree geni predict all our age-specific breeding trait, and according to Shutt et al. (2018) and Macphie et al. (2025), we know that taxa like birch, sycamore or willow positively impact fledgeling success and/or caterpillar availability for blue tits across the whole breeding season, and therefore we would be missing key information.
+
+```{r, fig.width=12}
+oak_sites <- habitat %>% select(site, nestbox, l_oak, m_oak, s_oak)
+
+oak_sites <- oak_sites %>% replace_na(list(l_oak = 0, m_oak = 0, s_oak = 0))
+
+oak_sites$TOTAL_oak <- 0
+
+for (i in 1:nrow(oak_sites)) {
+  oak_sites[i,"TOTAL_oak"] <- sum(c(oak_sites[i,"s_oak"], oak_sites[i,"m_oak"], oak_sites[i,"l_oak"]))
+}
+
+for (i in 1:nrow(environment)) {
+  environment[i,"TOTAL_oak"] <- sum(oak_sites[which(oak_sites$site ==  environment[i,"sites"]),"TOTAL_oak"])
+}
+
+plot1 <- ggplot(environment, aes(x=sites, y=TOTAL_oak)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Sites", y = "Absolute number of oaks") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, margin = unit(c(3, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  scale_x_discrete(limits = level_order)
+
+plot1
+```
+Here we can already see that there's quite a big variation between sites based solely on the absolute number of oaks present. However, there are quite a few sites that have no oaks available, and in terms of this variable, they are identical in environmental conditions, which is not accurate.
+
+```{r, fig.width=12}
+ggplot(environment, aes(x=elevation, y=TOTAL_oak)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Elevation", y = "Absolute number of oaks") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(margin = unit(c(1, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) 
+```
+
+Although sites with a greater number of oaks are usually of low-mid elevation according to this graph, it might be too vague:
+
+```{r, fig.width=12}
+lm2 <- lm(TOTAL_oak ~ elevation, data = environment)
+
+summary(lm2)
+
+ggplot(environment, aes(x=elevation, y=TOTAL_oak)) +
+  geom_point() +
+  geom_smooth(method='lm', formula= y~x) +
+  theme_bw() +
+  labs(x = "Elevation", y = "Absolute number of oaks") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(margin = unit(c(1, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) 
+
+```
+
+```{r, fig.width=12}
+ggplot(environment, aes(x=TOTAL_oak, y=site_occ)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Absolute number of oaks", y = "Average occupancy") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(margin = unit(c(1, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) 
+```
+
+At first glance, there does not appear to be a particularly strong correlation between the number of oak trees present at a site and its average occupancy.
+    
+```{r, fig.width=12}
+lm3 <- lm(site_occ ~ TOTAL_oak, data = environment)
+
+summary(lm3)
+
+ggplot(environment, aes(x=TOTAL_oak, y=site_occ)) +
+  geom_point() +
+  geom_smooth(method='lm', formula= y~x) +
+  theme_bw() +
+  labs(x = "Absolute number of oaks", y = "Average occupancy") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(margin = unit(c(1, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) 
+
+```
+
+
+#### a. Proportion of oaks per site
+
+```{r, fig.width=12}
+habitat <- habitat %>% replace(is.na(.), 0)  # replacing all NAs for 0s
+
+# Creating a dataframe summarising the number of trees per genus recorded at each nestbox, ignoring their girth
+trees_per_box <- data.frame(sites = habitat$site, box = habitat$nestbox, alder = rep(0, nrow(habitat)), ash = rep(0, nrow(habitat)), aspen = rep(0, nrow(habitat)), beech = rep(0, nrow(habitat)), birch = rep(0, nrow(habitat)), blackthorn = rep(0, nrow(habitat)), cherry = rep(0, nrow(habitat)), chestnut = rep(0, nrow(habitat)), conifer = rep(0, nrow(habitat)), elder = rep(0, nrow(habitat)), elm = rep(0, nrow(habitat)), hawthorn = rep(0, nrow(habitat)), hazel = rep(0, nrow(habitat)), holly = rep(0, nrow(habitat)), juniper = rep(0, nrow(habitat)), lime = rep(0, nrow(habitat)), oak = rep(0, nrow(habitat)), pine = rep(0, nrow(habitat)), rose = rep(0, nrow(habitat)), rowan = rep(0, nrow(habitat)), sycamore = rep(0, nrow(habitat)), whitebeam = rep(0, nrow(habitat)), willow = rep(0, nrow(habitat)), yew = rep(0, nrow(habitat)), other = rep(0, nrow(habitat)))
+
+trees_per_box$alder <- habitat$X6_alder + habitat$m_alder + habitat$s_alder  # calculating the number of each tree genus by adding recordings of the same tree genus of different girth
+trees_per_box$ash <- habitat$l_ash + habitat$m_ash + habitat$s_ash
+trees_per_box$aspen <- habitat$m_aspen + habitat$s_aspen
+trees_per_box$beech <- habitat$l_beech + habitat$m_beech + habitat$s_beech + habitat$X6_beech
+trees_per_box$birch <- habitat$l_birch + habitat$m_birch + habitat$s_birch + habitat$X21_birch + habitat$X6_birch
+trees_per_box$blackthorn <- habitat$z_blackthorn + habitat$X21_blackthorn
+trees_per_box$cherry <- habitat$l_cherry + habitat$m_cherry + habitat$s_cherry + habitat$z_cherry + habitat$X6_cherry
+trees_per_box$chestnut <- habitat$m_chestnut + habitat$s_chestnut
+trees_per_box$conifer <- habitat$l_conifer + habitat$m_conifer + habitat$s_conifer
+trees_per_box$elder <- habitat$s_elder + habitat$X6_elder
+trees_per_box$elm <- habitat$l_elm + habitat$m_elm + habitat$s_elm
+trees_per_box$hawthorn <- habitat$s_hawthorn
+trees_per_box$hazel <- habitat$s_hazel + habitat$X6_hazel + habitat$X21_hazel
+trees_per_box$holly <- habitat$m_holly + habitat$s_holly + habitat$X6_holly + habitat$X21_holly
+trees_per_box$juniper <- habitat$s_juniper + habitat$X6_juniper
+trees_per_box$lime <- habitat$m_lime + habitat$s_lime
+trees_per_box$oak <- habitat$l_oak + habitat$m_oak + habitat$s_oak
+trees_per_box$pine <- habitat$l_pine + habitat$m_pine + habitat$s_pine
+trees_per_box$rose <- habitat$X6_rose 
+trees_per_box$rowan <- habitat$m_rowan + habitat$s_rowan + habitat$X6_rowan
+trees_per_box$sycamore <- habitat$s_sycamore + habitat$l_sycamore + habitat$m_sycamore + habitat$X6_sycamore
+trees_per_box$whitebeam <- habitat$m_whitebeam + habitat$s_whitebeam
+trees_per_box$willow <- habitat$l_willow + habitat$m_willow + habitat$s_willow + habitat$z_willow + habitat$X6_willow + habitat$X21_willow
+trees_per_box$yew <- habitat$m_yew + habitat$s_yew
+trees_per_box$other <- habitat$s_other + habitat$z_other
+
+
+# Calculating the total number of trees recorded at each nest box, irrespective of their genus
+trees_per_box$total_trees <- trees_per_box$alder + trees_per_box$ash + trees_per_box$aspen + trees_per_box$beech + trees_per_box$birch + trees_per_box$blackthorn + trees_per_box$cherry + trees_per_box$chestnut + trees_per_box$conifer + trees_per_box$elder + trees_per_box$elm + trees_per_box$hawthorn + trees_per_box$hazel + trees_per_box$holly + trees_per_box$juniper + trees_per_box$lime + trees_per_box$oak + trees_per_box$pine + trees_per_box$rose + trees_per_box$rowan + trees_per_box$sycamore + trees_per_box$whitebeam + trees_per_box$willow + trees_per_box$yew + trees_per_box$other
+
+# Creating a dataframe to store all trees per site rather than per nest box
+trees <- data.frame(sites = sites$site, alder = rep(0, nrow(sites)), ash = rep(0, nrow(sites)), aspen = rep(0, nrow(sites)), beech = rep(0, nrow(sites)), birch = rep(0, nrow(sites)), blackthorn = rep(0, nrow(sites)), cherry = rep(0, nrow(sites)), chestnut = rep(0, nrow(sites)), conifer = rep(0, nrow(sites)), elder = rep(0, nrow(sites)), elm = rep(0, nrow(sites)), hawthorn = rep(0, nrow(sites)), hazel = rep(0, nrow(sites)), holly = rep(0, nrow(sites)), juniper = rep(0, nrow(sites)), lime = rep(0, nrow(sites)), oak = rep(0, nrow(sites)), pine = rep(0, nrow(sites)), rose = rep(0, nrow(sites)), rowan = rep(0, nrow(sites)), sycamore = rep(0, nrow(sites)), whitebeam = rep(0, nrow(sites)), willow = rep(0, nrow(sites)), yew = rep(0, nrow(sites)), other = rep(0, nrow(sites)))
+
+
+for (i in 1:nrow(trees)) {
+  trees[i,"alder"] <- sum(trees_per_box[which(trees_per_box$sites ==  trees[i,"sites"]),"alder"])
+}  # adding all alders at all nest boxes per site
+
+for (i in 1:nrow(trees)) {
+  trees[i,"ash"] <- sum(trees_per_box[which(trees_per_box$sites ==  trees[i,"sites"]),"ash"])
+}  # ash
+
+for (i in 1:nrow(trees)) {
+  trees[i,"aspen"] <- sum(trees_per_box[which(trees_per_box$sites ==  trees[i,"sites"]),"aspen"])
+}  # aspen
+
+for (i in 1:nrow(trees)) {
+  trees[i,"beech"] <- sum(trees_per_box[which(trees_per_box$sites ==  trees[i,"sites"]),"beech"])
+}  # beech
+
+for (i in 1:nrow(trees)) {
+  trees[i,"birch"] <- sum(trees_per_box[which(trees_per_box$sites ==  trees[i,"sites"]),"birch"])
+}  # birch
+
+for (i in 1:nrow(trees)) {
+  trees[i,"cherry"] <- sum(trees_per_box[which(trees_per_box$sites ==  trees[i,"sites"]),"cherry"])
+}  # cherry
+
+for (i in 1:nrow(trees)) {
+  trees[i,"blackthorn"] <- sum(trees_per_box[which(trees_per_box$sites ==  trees[i,"sites"]),"blackthorn"])
+}  # blackthorn
+
+for (i in 1:nrow(trees)) {
+  trees[i,"chestnut"] <- sum(trees_per_box[which(trees_per_box$sites ==  trees[i,"sites"]),"chestnut"])
+}  # chestnut
+
+for (i in 1:nrow(trees)) {
+  trees[i,"conifer"] <- sum(trees_per_box[which(trees_per_box$sites ==  trees[i,"sites"]),"conifer"])
+}  # conifer
+
+for (i in 1:nrow(trees)) {
+  trees[i,"elder"] <- sum(trees_per_box[which(trees_per_box$sites ==  trees[i,"sites"]),"elder"])
+}  # elder
+
+for (i in 1:nrow(trees)) {
+  trees[i,"elm"] <- sum(trees_per_box[which(trees_per_box$sites ==  trees[i,"sites"]),"elm"])
+}  # elm
+
+for (i in 1:nrow(trees)) {
+  trees[i,"hawthorn"] <- sum(trees_per_box[which(trees_per_box$sites ==  trees[i,"sites"]),"hawthorn"])
+}  # hawthorn
+
+for (i in 1:nrow(trees)) {
+  trees[i,"hazel"] <- sum(trees_per_box[which(trees_per_box$sites ==  trees[i,"sites"]),"hazel"])
+}  # hazel
+
+for (i in 1:nrow(trees)) {
+  trees[i,"holly"] <- sum(trees_per_box[which(trees_per_box$sites ==  trees[i,"sites"]),"holly"])
+}  # holly
+
+for (i in 1:nrow(trees)) {
+  trees[i,"juniper"] <- sum(trees_per_box[which(trees_per_box$sites ==  trees[i,"sites"]),"juniper"])
+}  # juniper
+
+for (i in 1:nrow(trees)) {
+  trees[i,"lime"] <- sum(trees_per_box[which(trees_per_box$sites ==  trees[i,"sites"]),"lime"])
+}  # lime
+
+for (i in 1:nrow(trees)) {
+  trees[i,"oak"] <- sum(trees_per_box[which(trees_per_box$sites ==  trees[i,"sites"]),"oak"])
+}  # oak
+
+for (i in 1:nrow(trees)) {
+  trees[i,"pine"] <- sum(trees_per_box[which(trees_per_box$sites ==  trees[i,"sites"]),"pine"])
+}  # pine
+
+for (i in 1:nrow(trees)) {
+  trees[i,"rose"] <- sum(trees_per_box[which(trees_per_box$sites ==  trees[i,"sites"]),"rose"])
+}  # rose
+
+for (i in 1:nrow(trees)) {
+  trees[i,"rowan"] <- sum(trees_per_box[which(trees_per_box$sites ==  trees[i,"sites"]),"rowan"])
+}  # rowan
+
+for (i in 1:nrow(trees)) {
+  trees[i,"sycamore"] <- sum(trees_per_box[which(trees_per_box$sites ==  trees[i,"sites"]),"sycamore"])
+}  # sycamore
+
+for (i in 1:nrow(trees)) {
+  trees[i,"whitebeam"] <- sum(trees_per_box[which(trees_per_box$sites ==  trees[i,"sites"]),"whitebeam"])
+}  # whitebeam
+
+for (i in 1:nrow(trees)) {
+  trees[i,"willow"] <- sum(trees_per_box[which(trees_per_box$sites ==  trees[i,"sites"]),"willow"])
+}  # willow
+
+for (i in 1:nrow(trees)) {
+  trees[i,"yew"] <- sum(trees_per_box[which(trees_per_box$sites ==  trees[i,"sites"]),"yew"])
+}  # yew
+
+for (i in 1:nrow(trees)) {
+  trees[i,"other"] <- sum(trees_per_box[which(trees_per_box$sites ==  trees[i,"sites"]),"other"])
+}  # other
+
+
+trees$total_trees <- trees$alder + trees$ash + trees$aspen + trees$beech + trees$birch + trees$blackthorn + trees$cherry + trees$chestnut + trees$conifer + trees$elder + trees$elm + trees$hawthorn + trees$hazel + trees$holly + trees$juniper +trees$lime + trees$oak + trees$pine + trees$rose + trees$rowan + trees$sycamore + trees$whitebeam + trees$willow + trees$yew + trees$other 
+
+trees$oak_proportion <- trees$oak/trees$total_trees
+
+environment$proportion_oak <- trees$oak_proportion
+
+plot2 <- ggplot(environment, aes(x=sites, y=proportion_oak)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Sites", y = "Proportion of oak trees") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, margin = unit(c(3, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  scale_x_discrete(limits = level_order) 
+
+plot2
+```
+
+```{r, echo=F, fig.width=12, fig.height=10}
+grid.arrange(plot1, plot2, ncol=1, nrow = 2)
+```
+
+There appear to be no great differences in habitat characterisation between using absolute number of oaks and their proportion with respect to the rest of the trees present.
+
+```{r, fig.width=12}
+lm4 <- lm(proportion_oak ~ TOTAL_oak, data = environment)
+
+summary(lm4)
+
+ggplot(environment, aes(x=TOTAL_oak, y=proportion_oak)) +
+  geom_point() +
+  geom_smooth(method='lm', formula= y~x) +
+  theme_bw() +
+  labs(x = "Absolute number of oaks", y = "Average occupancy") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(margin = unit(c(1, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) 
+```
+
+And as one would expect, `absolute number of oaks` and `proportion of oaks` are strongly positively correlated, which (I assume) implies that the use of either one of them should not deliver too-different results
+
+
+#### c. Absolute number of oak, birch and sycamore trees (combined)
+
+The purpose of adding oak, birch and sycamore trees together is to hopefully capture the buffering role of birch and sycamore.
+
+```{r, fig.width=12}
+trees$oak_birch_sycamore <- trees$birch + trees$oak + trees$sycamore
+
+environment$oak_birch_sycamore <- trees$oak_birch_sycamore
+
+plot3 <- ggplot(environment, aes(x=sites, y=oak_birch_sycamore)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Sites", y = "Oaks, birchs and sycamores combined") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, margin = unit(c(3, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  scale_x_discrete(limits = level_order)
+```
+
+This combination appears to capture site differences better between those sites that had no oak availability.
+
+```{r, fig.width=12}
+ggplot(environment, aes(x=elevation, y=oak_birch_sycamore)) +
+  geom_point() +
+  geom_smooth(method='lm', formula= y~x) +
+  theme_bw() +
+  labs(x = "Elevation", y = "Absolute number of oaks") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(margin = unit(c(1, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) 
+```
+
+In contrast to the `Absolute number of oak vs. Elevation` plot, the sum of oak, birch and sycamore trees doesn't appear to be correlated with elevation.
+
+
+#### d. Proportion of oak, sycamore and birch
+
+```{r, fig.width=12}
+trees$proportion_oak_birch_sycamore <- trees$oak_birch_sycamore/trees$total_trees
+
+environment$proportion_oak_birch_sycamore <- trees$proportion_oak_birch_sycamore
+
+plot4 <- ggplot(environment, aes(x=sites, y=proportion_oak_birch_sycamore)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Sites", y = "Proportion of oaks, birchs and sycamores combined") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, margin = unit(c(3, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  scale_x_discrete(limits = level_order)
+
+plot4
+
+lm5 <- lm(proportion_oak_birch_sycamore ~ oak_birch_sycamore, data = environment)
+
+summary(lm5)
+
+ggplot(environment, aes(x=oak_birch_sycamore, y=proportion_oak_birch_sycamore)) +
+  geom_point() +
+  geom_smooth(method='lm', formula= y~x) +
+  theme_bw() +
+  labs(x = "Absolute number of oak, sycamore and birch trees (combined)", y = "Proportion of oak, sycamore and birch trees (combined)") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(margin = unit(c(1, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) 
+```
+
+Again as expected, `absolute number of oak, brich and sycamore trees (combined)` and `proportion of oak, sycamore and birch trees (combined)` are also positively correlated.
+
+#### e. Tree diversity (at genus level)
+
+```{r, fig.width=12}
+library(vegan)
+
+trees <- trees %>% relocate(c(conifer, other), .after = yew)
+
+# I will be using the Simpson's Index to calculate tree diversity, although I could use other index.
+
+tree.simp <- diversity(trees[,2:24],index = "simpson")  # I'm excluding the columns "other" and "conifers" because I don't exactly know what taxa they comprise and whether said taxa (or some of it) are already present in other columns (f.e. pine trees)
+
+environment$tree_diversity_simpson <- tree.simp
+
+plot5 <- ggplot(environment, aes(x=sites, y=tree_diversity_simpson)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Sites", y = "Tree diversity") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, margin = unit(c(3, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  scale_x_discrete(limits = level_order)
+
+plot5
+```
+
+The picture offered by tree diversity looks different to the ones shown so far (if at all, it share more similarities with the `Proportion of oak, birch and sycamore trees combined`):
+
+```{r, fig.width=12, fig.height=21}
+grid.arrange(plot2, plot4, plot5, ncol=1, nrow = 3)
+
+```
+
+```{r, fig.width=12}
+lm6 <- lm(tree_diversity_simpson ~ proportion_oak_birch_sycamore, data = environment)
+
+summary(lm6)
+
+ggplot(environment, aes(x=proportion_oak_birch_sycamore, y=tree_diversity_simpson)) +
+  geom_point() +
+  geom_smooth(method='lm', formula= y~x) +
+  theme_bw() +
+  labs(x = "Proportion of oak, sycamore and birch trees (combined)", y = "Tree diversity") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(margin = unit(c(1, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) 
+```
+
+Interestingly enough, as the proportion of oak, sycamore and birch trees (combined) increases, tree diversity decreases. This is expected as some sites are dominated by either of these geni (e.g. PIT is overwhelmingly dominated by oak trees). Now the question would be whether tree diversity is not really positive if oak, birch and sycamore abundance is very low (as these are the trees that have the most positive impact in breeding traits).
+
+```{r, fig.width=12}
+lm7 <- lm(tree_diversity_simpson ~ elevation, data = environment)
+
+summary(lm7)
+
+ggplot(environment, aes(x=elevation, y=tree_diversity_simpson)) +
+  geom_point() +
+  geom_smooth(method='lm', formula= y~x) +
+  theme_bw() +
+  labs(x = "Elevation", y = "Tree diversity") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(margin = unit(c(1, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) 
+```
+
+Tree diversity decreases as elevation increases.
+
+```{r, fig.width=12}
+lm8 <- lm(site_occ ~ tree_diversity_simpson, data = environment)
+
+summary(lm8)
+
+ggplot(environment, aes(x=tree_diversity_simpson, y=site_occ)) +
+  geom_point() +
+  geom_smooth(method='lm', formula= y~x) +
+  theme_bw() +
+  labs(x = "Tree diversity", y = "Nest occupancy") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(margin = unit(c(1, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+```
+
+Although the points are quite scattered (the model fit is not great; R^2 = `r summary(lm8)$r.squared`), there seems to be a positive correlation between tree diversity and average nest box occupancy: in sites were tree composition is more varied, nest boxes are usually occupied. As we don't know the relation between either of these variables and any of the breeding traits, we cannot infer much more (in regard to breeding success).
+
+
+
+
+
+Now, I'll use foliage scores. Unfortunately, I haven't been able to calculate them myself (I must be misunderstanding how Shutt et al. (2018) did the calculation), therefore I'm using the values found in the Habitat_Site.csv:
+
+```{r}
+habitat_foliage_scores <- read.csv("C:/Users/julia/OneDrive - University of Edinburgh/EEB_MSc_UEd/Dissertation/diss/data/Habitat_SiteII.csv")  
+
+as_tibble(habitat_foliage_scores)
+```
+First, I would like to recreate Figure 2 in Shutt et al. (2018) were they represent different foliage scores per sites:
+
+```{r, fig.width=12, fig.height=10}
+habitat_foliage_scores <- habitat_foliage_scores %>% arrange(factor(Site, levels = level_order))
+
+fs <- habitat_foliage_scores[,1:12]  # selecting columns with absolute foliage scores
+
+score <- fs %>% pivot_longer(cols=c(Alder_FS, Ash_FS, Aspen_FS, Beech_FS, Birch_FS, Elm_FS, Oak_FS, Sycamore_FS, Willow_FS, Conifer_FS, OthDecid_FS), names_to = "foliage_score")
+
+ggplot(score, aes(x=Site, y=value, fill = foliage_score)) +
+  geom_col(colour="black") +
+  theme_bw() +
+  labs(x = "Sites", y = "Foliage score") +
+  guides(fill=guide_legend(title="Foliage score")) +
+  scale_fill_hue(labels = c("Alder", "Ash", "Aspen", "Beech", "Birch", "Conifer", "Elm", "Oak", "Other deciduous", "Sycamore", "Willow")) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, margin = unit(c(3, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  scale_x_discrete(limits = level_order)
+
+```
+
+This plot serves to show the high habitat variability along the transect of the project. We can appreciate sites where foliage cover is dominated by one or two species (e.g. EDI, TOM,PIT) and sites were foliage cover is more or less evenly spread among several tree geni (e.g. DEL).
+
+Is this wide variety also represented by solely counting trees?:
+
+```{r, fig.width=12, fig.height=10}
+treex <- trees[,1:26]
+
+treex <- treex %>% mutate(other_dec = blackthorn + cherry + chestnut + elder + hawthorn + hazel + holly + lime + rose + rowan + whitebeam + other, conifers = juniper + pine + yew + conifer) %>%
+  select(sites, alder, ash, aspen, beech, birch, conifers, elm, oak, sycamore, willow, other_dec)
+
+treex_long <- treex %>% pivot_longer(cols=c(alder, ash, aspen, beech, birch, conifers, elm, oak, sycamore, willow, other_dec), names_to = "taxon")
+
+ggplot(treex_long, aes(x=sites, y=value, fill = taxon)) +
+  geom_col(colour="black") +
+  theme_bw() +
+  labs(x = "Sites", y = "Number of trees") +
+  guides(fill=guide_legend(title="Taxa")) +
+  scale_fill_hue(labels = c("Alder", "Ash", "Aspen", "Beech", "Birch", "Conifers", "Elm", "Oak", "Other deciduous", "Sycamore", "Willow")) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, margin = unit(c(3, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  scale_x_discrete(limits = level_order)
+```
+
+From a first glance to both plots, I'd say that (as should be expected) using count may either overestimate the effect of certain trees in a site (e.g. in BIR there appear to be >50 sycamore trees but their cover appears to be quite low, according to the foliage score) or underestimate it (e.g. could apply to sycamore in EDI). However, it's not easy to tell as in both cases we're evaluating absolute numbers, and it might not be proper to compare absolute foliage score with absolute number of trees. If instead we compare contribution of each taxa to tree composition according to proportion of trees and to proportion of foliage score we might get a better idea:
+
+```{r, fig.width=12}
+fs_prop <- habitat_foliage_scores[,c(1, 14:24)]  # selecting columns with absolute foliage scores
+
+score_prop <- fs_prop %>% pivot_longer(cols=c(Alder_prop, Ash_prop, Aspen_prop, Beech_prop, Birch_prop, Elm_prop, Oak_prop, Sycamore_prop, Willow_prop, Conifer_prop, OthDecid_prop), names_to = "prop_foliage_score")
+
+plot6 <- ggplot(score_prop, aes(x=Site, y=value, fill = prop_foliage_score)) +
+  geom_col(colour="black") +
+  theme_bw() +
+  labs(x = "Sites", y = "Proportional oliage score") +
+  guides(fill=guide_legend(title="Foliage score")) +
+  scale_fill_hue(labels = c("Alder", "Ash", "Aspen", "Beech", "Birch", "Conifer", "Elm", "Oak", "Other deciduous", "Sycamore", "Willow")) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, margin = unit(c(3, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  scale_x_discrete(limits = level_order)
+
+treex_prop <- treex %>% 
+  mutate(total = alder + ash + aspen + beech + birch + conifers + elm + oak + other_dec + sycamore + willow) %>%
+  mutate(alder_prop = alder/total, ash_prop = ash/total, aspen_prop = aspen/total, beech_prop = beech/total, birch_prop = birch/total, conifers_prop = conifers/total, elm_prop = elm/total, oak_prop = oak/total, other_dec_prop = other_dec/total, sycamore_prop = sycamore/total, willow_prop = willow/total) %>%
+  select(sites, alder_prop, ash_prop, aspen_prop, beech_prop, birch_prop, conifers_prop, elm_prop, oak_prop, other_dec_prop, sycamore_prop, willow_prop)
+
+treex_prop_long <- treex_prop %>% pivot_longer(cols=c(alder_prop, ash_prop, aspen_prop, beech_prop, birch_prop, conifers_prop, elm_prop, oak_prop, other_dec_prop, sycamore_prop, willow_prop), names_to = "prop")
+
+plot7 <- ggplot(treex_prop_long, aes(x=sites, y=value, fill = prop)) +
+  geom_col(colour="black") +
+  theme_bw() +
+  labs(x = "Sites", y = "Proportion of each taxa contribution") +
+  guides(fill=guide_legend(title="Foliage score")) +
+  scale_fill_hue(labels = c("Alder", "Ash", "Aspen", "Beech", "Birch", "Conifer", "Elm", "Oak", "Other deciduous", "Sycamore", "Willow")) +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, margin = unit(c(3, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  scale_x_discrete(limits = level_order)
+
+grid.arrange(plot6, plot7, ncol=1, nrow = 2)
+```
+
+There are slight differences between plots. However, since the foliage score was specifically calculated to capture habitat more extensively, it's probably a better representation of the environment. I would like to see correlation between both but I might explore that more in depth later.
+
+#### f. Total foliage score
+
+```{r, fig.width=12}
+environment$total_FS <- habitat_foliage_scores[match(environment$sites, habitat_foliage_scores$Site), "Total"]
+
+plot8 <- ggplot(environment, aes(x=sites, y=total_FS)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Sites", y = "Total foliage score") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, margin = unit(c(3, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  scale_x_discrete(limits = level_order)
+
+plot8
+
+```
+
+There appears to be quite a lot of variation among sites in terms of foliage score.
+
+```{r, fig.width=12}
+lm9 <- lm(total_FS ~ elevation, data = environment)
+
+summary(lm9)
+
+ggplot(environment, aes(x=elevation, y=total_FS)) +
+  geom_point() +
+  geom_smooth(method='lm', formula= y~x) +
+  theme_bw() +
+  labs(x = "Elevation", y = "Total foliage score") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(margin = unit(c(1, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+```
+
+As elevation increases, total foliage score decreases, as does tree diversity. However, even if tree diversity and foliage score were positively correlated, I can't see a direct link as foliage cover is great in several sites dominated by one or a couple taxa (e.g. site SLS).
+
+#### g. Oak foliage score
+
+```{r, fig.width=12}
+environment$oak_FS <- habitat_foliage_scores[match(environment$sites, habitat_foliage_scores$Site),"Oak_FS"]
+
+plot9 <- ggplot(environment, aes(x=sites, y=oak_FS)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Sites", y = "Oak foliage score") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, margin = unit(c(3, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  scale_x_discrete(limits = level_order)
+
+plot9
+```
+
+This plot looks particularly similar to `Absolute number of oaks`:
+
+```{r, fig.width=12}
+lm10 <- lm(oak_FS ~ TOTAL_oak, data = environment)
+
+summary(lm10)
+
+ggplot(environment, aes(x=TOTAL_oak, y=oak_FS)) +
+  geom_point() +
+  geom_smooth(method='lm', formula= y~x) +
+  theme_bw() +
+  labs(x = "Absolute number of oaks", y = "Oak foliage score") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(margin = unit(c(1, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")))
+```
+
+Both variables are correlated, but not 1-to-1 (although model fit is quite good: R^2 = `r summary(lm10)$r.squared`).
+
+#### h. Birch foliage score
+
+```{r, fig.width=12}
+environment$birch_FS <- habitat_foliage_scores[match(environment$sites, habitat_foliage_scores$Site),"Birch_FS"]
+
+plot10 <- ggplot(environment, aes(x=sites, y=oak_FS)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Sites", y = "Oak foliage score") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, margin = unit(c(3, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  scale_x_discrete(limits = level_order)
+
+```
+
+
+#### i. Sycamore foliage score
+
+```{r}
+environment$sycamore_FS <- habitat_foliage_scores[match(environment$sites, habitat_foliage_scores$Site),"Sycamore_FS"]
+
+plot11 <- ggplot(environment, aes(x=sites, y=sycamore_FS)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Sites", y = "Sycamore foliage score") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, margin = unit(c(3, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  scale_x_discrete(limits = level_order)
+
+```
+
+#### j. Willow foliage score
+
+```{r}
+environment$willow_FS <- habitat_foliage_scores[match(environment$sites, habitat_foliage_scores$Site),"Willow_FS"]
+
+plot12 <- ggplot(environment, aes(x=sites, y=willow_FS)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Sites", y = "Willow foliage score") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, margin = unit(c(3, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  scale_x_discrete(limits = level_order)
+
+```
+
+#### k. Beech foliage score
+
+```{r}
+environment$beech_FS <- habitat_foliage_scores[match(environment$sites, habitat_foliage_scores$Site),"Beech_FS"]
+
+plot13 <- ggplot(environment, aes(x=sites, y=beech_FS)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Sites", y = "Beech foliage score") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, margin = unit(c(3, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  scale_x_discrete(limits = level_order)
+
+```
+
+#### l. Oak, sycamore and birch foliage score
+
+```{r}
+oak_birch_sycamore_FS <- habitat_foliage_scores %>% 
+  select(c(Site,Oak_FS,Birch_FS,Sycamore_FS)) %>%
+  mutate(sum = Oak_FS + Birch_FS, Sycamore_FS)
+
+environment$oak_birch_sycamore_FS <- oak_birch_sycamore_FS[match(environment$sites, oak_birch_sycamore_FS$Site),"sum"]
+
+plot14 <- ggplot(environment, aes(x=sites, y=oak_birch_sycamore_FS)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Sites", y = "Oak, birch and sycamore foliage scores combined") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, margin = unit(c(3, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  scale_x_discrete(limits = level_order)
+
+```
+
+#### m. Oak foliage score (proportion)
+
+```{r}
+environment$oak_FS_prop <- habitat_foliage_scores[match(environment$sites, habitat_foliage_scores$Site), "Oak_prop"]
+
+plot15 <- ggplot(environment, aes(x=sites, y=oak_FS_prop)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Sites", y = "Oak foliage score (proportion)") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, margin = unit(c(3, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  scale_x_discrete(limits = level_order)
+
+```
+
+#### m. Oak, sycamore and birch foliage score (proportion)
+
+```{r}
+oak_birch_sycamore_FS_prop <- habitat_foliage_scores %>% 
+  select(c(Site,Oak_prop,Birch_prop,Sycamore_prop)) %>%
+  mutate(sum = Oak_prop + Birch_prop, Sycamore_prop)
+
+environment$oak_birch_sycamore_FS_prop <- oak_birch_sycamore_FS_prop[match(environment$sites, oak_birch_sycamore_FS_prop$Site),"sum"]
+
+plot16 <- ggplot(environment, aes(x=sites, y=oak_birch_sycamore_FS_prop)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Sites", y = "Oak, birch and sycamore foliage score (proportion and combined)") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, margin = unit(c(3, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  scale_x_discrete(limits = level_order)
+
+```
+
+```{r, fig.width=20, fig.height=20}
+grid.arrange(plot8, plot9, plot11, plot12, plot13, plot14, plot15, plot16, ncol=2, nrow = 4)
+
+```
+
+Seeing these graphs, my first impression is that individual foliage scores might have the drawback of being a 0 for many sites whose average breeding performance might be quite different from one to another. However, combining them in a single model (as Shutt. et al (2018) did) could compensate for this and would potentially give us more detail information on what specific elements in the habitat enhance or decrease breeding success (as well as it give us the opportunity to compare results with those published by Shutt et al.(2018)). Even though they don't include beech in their study, I was wondering wether it would be interesting to as, according to Ally, birds seem to do worse when there's lots of beech around. I wonder if it could act as a "bad environment" and whether addressing it specifically would be useful.
+
+
+#### o. Urbanisation
+
+As Sanjana suggested, I looked at the Scottish Government Urban Rural Classification and I have assigned to each site one category based on where they are in the map and which category is assigned to their area. Ideally I would assign them more precisely (f.e. using their postcode) but I am struggling to find the postcode indices for each year of the project and their respective Urban Rural Classification Category, so for now I have simply assigned them visually (I attached maps to the e-mail). What I've noticed by doing this is that there are a couple of sites (e.g. PTH, RSY) that are very, very close to Large Urban areas (or Other Urban Areas or Rest of Scotland, depending on the map and the classification system) but they are not within one. I would agree that, even if they are not within the borders of such areas, they probably are affected to some degree by them, but I don't think that will be captured as usually they fall within the same category as other sites that are quite far away from any considerable urban area. I am very interested in characterising urbanisation and this is a good start, although I wonder whether measuring distance from each site to the closest Large Urban or Other Urban Area would be a more precise approach.
+
+This being said, I have classified all sites according to all the Urban Rural Classification Systems (2-fold, 3-fold, 6-fold and 8-fold):
+
+```{r, fig.width=12, fig.height=8}
+library(openxlsx)
+urbanisation <- read.xlsx("C:/Users/julia/OneDrive - University of Edinburgh/EEB_MSc_UEd/Dissertation/diss/data/Urban_Rural_Classification_new.xlsx")
+
+head(urbanisation)
+
+ggplot(urbanisation, aes(x=site, y=X2fold)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Sites", y = "Urbanisation (2-fold system)") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text.x = element_text(angle = 45, margin = unit(c(3, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  scale_x_discrete(limits = level_order) +
+  facet_wrap(~year)  # this is probably not the best plot to use, but at the moment I couldn't code what I would like to see. Anyhow, I will provide the maps
+
+ggplot(urbanisation, aes(x=site, y=X3fold)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Sites", y = "Urbanisation (3-fold system)") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text.x = element_text(angle = 45, margin = unit(c(3, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  scale_x_discrete(limits = level_order) +
+  facet_wrap(~year)
+
+ggplot(urbanisation, aes(x=site, y=X6fold)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Sites", y = "Urbanisation (6-fold system)") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text.x = element_text(angle = 45, margin = unit(c(3, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  scale_x_discrete(limits = level_order) +
+  facet_wrap(~year)
+
+ggplot(urbanisation, aes(x=site, y=X8fold)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Sites", y = "Urbanisation (8-fold system)") +
+  theme(axis.title = element_text(size = 14), 
+        axis.text.x = element_text(angle = 45, margin = unit(c(3, 0, 0, 0), "mm")), 
+        axis.title.x = element_text(margin = unit(c(3, 0, 0, 0), "mm")),
+        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm"))) +
+  scale_x_discrete(limits = level_order) +
+  facet_wrap(~year)
+```
+
+In almost all classifications, all site fall within areas classified as rural (and depending on the classfication, bigger or smaller and more or less remote).
+

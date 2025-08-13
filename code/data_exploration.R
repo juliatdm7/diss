@@ -1276,7 +1276,7 @@ library(ggstatsplot)
 
 # First, I will do a very rude all vs. all correlation:
 
-env <- environment[,3:29]
+env <- environment[,3:30]
 
 corrplot1 <- ggstatsplot::ggcorrmat(
   data = env,
@@ -1287,7 +1287,7 @@ corrplot1 <- ggstatsplot::ggcorrmat(
 
 # Now, I would like to see how different oak-related variables correlate with each other:
 
-oak_vars <- env[,c(3, 4, 11, 18)]  # total number of oak trees, proportion of oak trees, oak foliage score and proportion of oak foliage score
+oak_vars <- env[,c(4,5,12,19)]  # total number of oak trees, proportion of oak trees, oak foliage score and proportion of oak foliage score
 
 ggstatsplot::ggcorrmat(
   data = oak_vars,
@@ -1297,7 +1297,7 @@ ggstatsplot::ggcorrmat(
 
 # Now, I would like to check how other trees (i.e. willow, birch and sycamore) variables correlate with each other
 
-trees_bars <- env[,c(5,6,7,8,17,16,20,19,10)]  
+trees_bars <- env[,c(6,7,8,9,18,17,21,20,11)]  
 
 ggstatsplot::ggcorrmat(
   data = trees_bars,
@@ -1307,7 +1307,7 @@ ggstatsplot::ggcorrmat(
 
 # Once this is done, I will do correlations only with overall FS, individual FS and other variables:
 
-predictors <- env[,c(10,1,2,9,27,11,12,13,14,17,16)]
+predictors <- env[,c(11,2,3,10,27,12,13,14,15,18,17)]
 
 pairs(predictors)
 

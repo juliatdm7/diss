@@ -94,6 +94,8 @@ suc_model <- glmmTMB(suc ~ scale(yo)*scale(total_FS) + scale(w)*scale(total_FS) 
 
 summary(suc_model)
 
+broom.mixed::tidy(suc_model, exponentiate = T)  # using broom.mixed package to extract back-transformed estimates of the fixed effects
+
 
 #########################
 ### Model diagnostics ###

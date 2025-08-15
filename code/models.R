@@ -7,6 +7,7 @@ library(glmmTMB)
 library(ggplot2)
 library(DHARMa)
 library(dplyr)
+library(broom.mixed)
 
 fed_df <- read.csv("data/fed_df_2025.csv")
 cs_df <- read.csv("data/cs_df_2025.csv")
